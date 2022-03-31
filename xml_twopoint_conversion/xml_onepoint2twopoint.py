@@ -1,6 +1,6 @@
 # Quick script to convert the xml files from using one point to two points in all cases
 
-input_file = "test_cvat_annotations.xml"
+input_file = "val_cvat_annotations.xml"
 
 
 def convert_to_two_points(line :str):
@@ -41,8 +41,6 @@ def convert_to_two_points(line :str):
         line = new_line
 
     return line
-
-
 
 
 
