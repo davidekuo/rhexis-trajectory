@@ -1,6 +1,10 @@
 # Ignore the DS_Store
 .DS_Store
 
+# Ignore .json and .xml files
+.json
+.xml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
