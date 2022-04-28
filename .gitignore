@@ -1,7 +1,8 @@
 # Ignore the DS_Store
 .DS_Store
+rhexis_config.txt
 
-# Ignore .json and .xml files
+# Ignore .json and .xml files (in case they are put in rep scope)
 .json
 .xml
 
