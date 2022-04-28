@@ -1,0 +1,13 @@
+name: rhexis_project
+channels:
+  - pytorch
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python
+  - pytorch
+  - torchvision
+  - pip
+  - pip:
+    - 'git+https://github.com/facebookresearch/detectron2.git'
