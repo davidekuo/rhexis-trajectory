@@ -1,1 +1,1 @@
-DATA_LOCATION:DATA_LOCATION:<location>
+DATA_LOCATION:<location>
