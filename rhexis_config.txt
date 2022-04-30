@@ -1,1 +1,1 @@
-DATA_LOCATION:/Users/bviggiano/Google Drive/My Drive/Stanford/Spring2022/RhexisProject/Rhexis_Project_Main/datasets
+DATA_LOCATION:<location>
