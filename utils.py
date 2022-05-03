@@ -5,6 +5,11 @@ A module of utility functions for the Rhexis project.
 from typing_extensions import assert_type
 import os
 
+from detectron2.data.datasets import register_coco_instances
+from detectron2.data import MetadataCatalog, DatasetCatalog
+
+
+
 
 def get_json_and_images(dataset_name: str):
     """
@@ -42,8 +47,30 @@ def get_json_and_images(dataset_name: str):
 
     # Return the locations
     json_loc = os.path.join(loc,f"{dataset_name}_set",
-        f"{dataset_name}_coco_keypoints_annotations.json")
+        f"{dataset_name}_coco_kp_bbox_annotations3.json")
 
     image_loc = os.path.join(loc,f"{dataset_name}_set","images")
 
     return json_loc, image_loc
+
+def load_datasets_pipeline():
+    """
+    This loads and does minor preprocessing on the datasets.
+    After this function is called.  You can now use:
+    1. MetadataCatalog
+    2. DatasetCatalog
+    with "train", "test" and "val" for the datset names
+    """
+    rhexis_keypoint_names = ["utrada_tip1", "utrada_tip2"]
+    rhexis_flip_map = [("utrada_tip1", "utrada_tip2")]
+    
+    for dataset in ["train", "test", "val"]:
+        # Collect json and image location
+        dataset_json_loc, dataset_image_loc = get_json_and_images(dataset)
+        register_coco_instances(dataset, {}, dataset_json_loc, dataset_image_loc)
+        
+        
+        
+        # add keypoint_names metadata needed for training
+        MetadataCatalog.get(dataset).keypoint_names = rhexis_keypoint_names
+        MetadataCatalog.get(dataset).keypoint_flip_map = rhexis_flip_map
