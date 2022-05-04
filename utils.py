@@ -13,7 +13,7 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.utils.visualizer import Visualizer
 
 
-def get_json_and_images(dataset_name: str):
+def get_json_and_images(dataset_name: str, DATASET_LOC: str):
     """
     This function returns the location of the the specified dataset.
 
@@ -33,29 +33,21 @@ def get_json_and_images(dataset_name: str):
 
     # Ensure the input is the correct type
     assert_type(dataset_name, str)
+    assert_type(DATASET_LOC, str)
 
     # Ensure this input is one of the valid options
     msg = f"'{dataset_name}' is an invalid option: Please use 'train', 'val', or 'test'"
     assert dataset_name == 'train' or dataset_name == 'val' or dataset_name == 'test', msg
 
-    # Attempt to read in the config file to collect location
-    loc = ""
-    with open("rhexis_config.txt") as config_file:
-        # Read in file
-        data = config_file.read()
-        
-        # Collect data location string
-        loc = data.split(":")[1]
-
     # Return the locations
-    json_loc = os.path.join(loc,f"{dataset_name}_set",
+    json_loc = os.path.join(DATASET_LOC,f"{dataset_name}_set",
         f"{dataset_name}_coco_kp_bbox_annotations3.json")
 
-    image_loc = os.path.join(loc,f"{dataset_name}_set","images")
+    image_loc = os.path.join(DATASET_LOC,f"{dataset_name}_set","images")
 
     return json_loc, image_loc
 
-def load_datasets_pipeline():
+def load_datasets_pipeline(DATASET_LOC: str):
     """
     This loads and does minor preprocessing on the datasets.
     After this function is called.  You can now use:
@@ -65,10 +57,11 @@ def load_datasets_pipeline():
     """
     rhexis_keypoint_names = ["utrada_tip1", "utrada_tip2"]
     rhexis_flip_map = [("utrada_tip1", "utrada_tip2")]
-    
+
+
     for dataset in ["train", "test", "val"]:
         # Collect json and image location
-        dataset_json_loc, dataset_image_loc = get_json_and_images(dataset)
+        dataset_json_loc, dataset_image_loc = get_json_and_images(dataset, DATASET_LOC)
         register_coco_instances(dataset, {}, dataset_json_loc, dataset_image_loc)
         
         
