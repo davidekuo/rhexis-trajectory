@@ -26,6 +26,12 @@ def load_cfg():
     cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 2
     cfg.TEST.KEYPOINT_OKS_SIGMAS = [1.0, 1.0]
 
+    cfg.SOLVER.CHECKPOINT_PERIOD = 500
+    # tells Detectron2 to save a model checkpoint every X iterations
+    # checkpoints are saved as 'model_{iteration_number}.pth
+    # Detectron2 also creates a file 'last_checkpoint' which simply contains the filename of .pth file for the last checkpoint (ex. model_0000079.pth)
+    # To resume training from last_checkpoint, Detectron2 needs 'last_checkpoint' and the corresponding .pth file in cfg.OUTPUT_DIR
+
     # cfg.DATALOADER.FILTER_EMPTY_ANNOTATIONS = False # keep and do not exclude images labeled to have no objects
 
     return cfg
