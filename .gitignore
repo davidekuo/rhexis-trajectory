@@ -1,4 +1,5 @@
 # Ignore the DS_Store
+./vscode
 .DS_Store
 rhexis_config.txt
 
