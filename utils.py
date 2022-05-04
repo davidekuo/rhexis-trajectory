@@ -41,7 +41,7 @@ def get_json_and_images(dataset_name: str, DATASET_LOC: str):
 
     # Return the locations
     json_loc = os.path.join(DATASET_LOC,f"{dataset_name}_set",
-        f"{dataset_name}_coco_kp_bbox_annotations3.json")
+        f"{dataset_name}_coco_annotations.json")
 
     image_loc = os.path.join(DATASET_LOC,f"{dataset_name}_set","images")
 
