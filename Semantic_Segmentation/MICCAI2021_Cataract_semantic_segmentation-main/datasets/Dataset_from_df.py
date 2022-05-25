@@ -40,6 +40,7 @@ class DatasetFromDF(Dataset):
                     os.path.join(*self.df.iloc[item].loc['img_path'].split('\\'))))[..., ::-1]
             img = img - np.zeros_like(img)  # deals with negative stride error
             # lbl = cv2.imread(str(pathlib.Path(self.data_path) / self.df.iloc[item].loc['lbl_path']), 0)
+            print('reading in labels')
             lbl = cv2.imread(
                 os.path.join(
                     self.data_path,
