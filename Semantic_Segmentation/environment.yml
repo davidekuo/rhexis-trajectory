@@ -1,0 +1,21 @@
+name: SemSegCat
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python
+  - pytorch
+  - tensorboard
+  - torchvision
+  - h5py
+  - matplotlib
+  - numpy
+  - scipy
+  - opencv
+  - pandas
+  - pillow
+  - pip
+  - future
+  - pip:
+    - ttach
+    - tqdm
