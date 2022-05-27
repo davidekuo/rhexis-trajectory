@@ -8,9 +8,9 @@ random.seed(0)
 
 def main():
     parser = argparse.ArgumentParser(description = "Generates training data by selecting X random jpgs from Y random subdirectories of current directory and copies them to output directory. Expects that all subdirectories of current directory contain jpgs corresponding to frames of a cataract surgery video.")
-    parser.add_argument('-nvideos', type=int, help='number of random directories (i.e. videos) to select', default=20)
-    parser.add_argument('-nframes', type=int, help='number of random frames to select from each video', default=20)
-    parser.add_argument('-output', type=str, help='output directory', default='training_data')
+    parser.add_argument('-nvideos', type=int, help='number of random directories (i.e. videos) to select: default -1 includes all directories/videos', default=-1)
+    parser.add_argument('-nframes', type=int, help='number of random frames to select from each video: default is 20', default=20)
+    parser.add_argument('-output', type=str, help='output directory: default is ./training_data', default='training_data')
     args = parser.parse_args()
 
     # terminal output for debugging
@@ -36,7 +36,11 @@ def main():
 
     # random.sample(somelist, someint) generates a list of someint elements of somelist
     # randomly sampled w/o replacement
-    training_videos = random.sample(list(video_frames.keys()), args.nvideos)
+    if args.nvideos != -1:
+        training_videos = random.sample(list(video_frames.keys()), args.nvideos)
+    else: # include all videos in directory
+        training_videos = list(video_frames.keys())
+
     training_frames = []
 
     for video in training_videos:
