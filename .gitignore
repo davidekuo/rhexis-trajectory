@@ -5,7 +5,7 @@ rhexis_config.txt
 
 # Ignore pretrained models
 Semantic_Segmentation/MICCAI2021_Cataract_semantic_segmentation-main/logs
-
+Semantic_Segmentation/segmentation_models/
 
 # Ignore .json and .xml files (in case they are put in rep scope)
 .json

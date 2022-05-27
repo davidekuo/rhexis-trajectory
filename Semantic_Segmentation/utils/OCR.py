@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.Projector import Projector
+from utils import *
 from torchvision.models import resnet101, resnet50, resnet18, resnet34
 from torchvision.models._utils import IntermediateLayerGetter
-from utils import CLASS_INFO
+
 
 
 class OCRNet(nn.Module):
