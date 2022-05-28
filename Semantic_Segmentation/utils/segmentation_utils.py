@@ -16,16 +16,78 @@ import glob
 import cv2
 import time
 
+def make_label_directories(DATA_LOC):
+  # Create label folders
+  train_folder = os.path.join(DATA_LOC, "train_set", "labels")
+  val_folder = os.path.join(DATA_LOC, "val_set", "labels")
+  test_folder = os.path.join(DATA_LOC, "test_set", "labels")
+
+  try:
+    os.mkdir(train_folder)
+  except OSError as error:
+    print("train_set label folder already exists | overwriting labels")
+
+  try:
+    os.mkdir(val_folder)
+  except OSError as error:
+    print("val_set label folder already exists | overwriting labels")
+
+  try:
+    os.mkdir(test_folder)
+  except OSError as error:
+    print("test_set label folder already exists | overwriting labels")
+
 def create_label_images(labels, img_data, DATA_LOC):
-  
+  """
+  Creates images of all of our labels
+  """
+  # Keep track of how many images saved successfully and which ones did not
+  success_count = 0
+  failures = []
+
+  # Unpack img_data
+  file_list, size_list = img_data
+
+  # Make the label directories, if they do not exist
+  make_label_directories(DATA_LOC)
+
   # For each image
   for i in range(labels.shape[0]):
+    # Get the current file name
+    f = file_list[i]
 
-    # Determine the name of this label
+    # Determine the name of this image
+    file_name = str.split(str.split(f, os.sep)[-1],".")[0]
     
+    # Determine which set the image is in
+    image_set = str.split(f, os.sep)[-3]
+
+    # Create final image path
+    label_path = os.path.join(DATA_LOC, image_set, "labels", file_name + ".png")
+
+    # Resize image to apporiate dimensions (uses interpolation method 
+    # nearest neighbors so label values are unchanged)
+    # NOTE: for some reason the label sizes got flipped??, reversed it
+    label_resized = cv2.resize(labels[i], (size_list[i][1],size_list[i][0]), 
+      interpolation = cv2.INTER_NEAREST)
+
+    # Write image to path location
+    if(cv2.imwrite(label_path, label_resized)):
+      success_count += 1
+    else:
+      failures.append(f)
+
+  print(f"Successfully saved {success_count} out of {labels.shape[0]} labels")
+
+  if len(failures) > 0:
+    print("Images that failed to generate labels:")
+    for fail in failures:
+      print(fail)
 
 
-def create_labels(model, x):
+print("Successfully created {i}/{")
+
+def create_labels(model, x, test_mode = False):
   """
   Reads in our data and creates labels by running them through a forward pass
   """
@@ -40,8 +102,9 @@ def create_labels(model, x):
   batches = np.split(x, num_batches)
   print("Creating Labels:")
 
-
-  batches = batches[0:2]
+  if test_mode:
+    # If we are in test mode, let's make batches smaller
+    batches = batches[0:2]
 
   for i, x_batch in enumerate(batches):
     start_time = time.time()
@@ -199,6 +262,4 @@ def parse_config(file_path, device):
       default_dict[k].update(config_dict[k])  # Overwrite defaults with the passed config values
 
   # Extra config bits needed
-  default_dict['data']['transform_values']['experiment'] = default_dict['data']['experiment']
-
-  return default_dict
+  default_dict['data']['transform_values']
