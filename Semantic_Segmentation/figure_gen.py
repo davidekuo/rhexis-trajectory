@@ -12,6 +12,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable, axes_size
 
+"""
+Note: This file contains some modified code from:
+https://github.com/RViMLab/MICCAI2021_Cataract_semantic_segmentation/blob/b24ea3b03e80b82c6633bec6c95dcc59c704cc76/utils/utils.py
+"""
+
+
 
 def remap_experiment(mask, experiment):
   """Remap mask for Experiment 'experiment' (needs to be int)"""
@@ -69,7 +75,7 @@ def get_cadis_colormap():
   Returns cadis colormap as in paper
   :return: ndarray of rgb colors
   """
-  return np.asarray(
+  c_map = np.asarray(
       [
           [0, 137, 255],
           [255, 165, 0],
@@ -109,6 +115,7 @@ def get_cadis_colormap():
           [133, 59, 59],
       ]
   )
+  return c_map
 
 
 def mask_from_network(mask, experiment):
@@ -155,6 +162,13 @@ def plot_images(remapped_mask, remapped_colormap, classes_exp, img = None):
   if img is not None:
     fig, axs = plt.subplots(1, 2, figsize=(26, 7))
     plt.subplots_adjust(left=1 / 16.0, right=1 - 1 / 16.0, bottom=1 / 8.0, top=1 - 1 / 8.0)
+
+    # We must swap from BGR to RGB because we utilized cv2.read to read in files
+    # swap BGR to RGB (why???)
+    red = img[:,:,2].copy()
+    blue = img[:,:,0].copy()
+    img[:,:,0] = red
+    img[:,:,2] = blue
     axs[0].imshow(img)
     axs[0].axis("off")
 

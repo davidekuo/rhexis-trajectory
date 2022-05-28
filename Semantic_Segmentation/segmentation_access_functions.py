@@ -23,12 +23,6 @@ def filename_to_numpy(full_file_path: str):
   # Collect the image
   img = cv2.imread(full_file_path)
 
-  # swap BGR to RGB (why???)
-  red = img[:,:,2].copy()
-  blue = img[:,:,0].copy()
-  img[:,:,0] = red
-  img[:,:,2] = blue
-
   # Cut off unneeded channels and return
   return img
 
