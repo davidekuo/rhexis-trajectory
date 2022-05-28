@@ -11,6 +11,102 @@ import json
 import pathlib
 from utils import *
 import torch
+import numpy as np
+import glob
+import cv2
+import time
+
+def create_label_images(labels, img_data, DATA_LOC):
+  
+  # For each image
+  for i in range(labels.shape[0]):
+
+    # Determine the name of this label
+    
+
+
+def create_labels(model, x):
+  """
+  Reads in our data and creates labels by running them through a forward pass
+  """
+  # Intialize return structure
+  labels = []
+
+  # Syncronize cuda
+  #torch.cuda.synchronize()
+
+  # Create batches
+  num_batches = 50
+  batches = np.split(x, num_batches)
+  print("Creating Labels:")
+
+
+  batches = batches[0:2]
+
+  for i, x_batch in enumerate(batches):
+    start_time = time.time()
+    with torch.no_grad():
+      print(f"Batch {i+1} of {len(batches)}")
+
+      print("-Applying forward pass")
+      logits = model.forward(torch.tensor(x_batch,device=torch.device('cuda:0')).float())
+
+      print("-Calculating softmax and outputing labels")
+      # Compute the label predictions using a 2D softmax
+      label_predictions = torch.argmax(torch.nn.Softmax2d()(logits), dim=1).cpu().numpy()
+
+      # Append results
+      labels.append(label_predictions)
+    print(f"-Completed after {time.time() - start_time} seconds")
+
+  # Concatenate all batch results and return
+  return np.concatenate(labels,axis = 0)
+
+
+
+
+
+
+
+def read_in_images(DATA_LOC: str):
+  """
+  Reads in images from the dataset location and returns a numpy array containing
+  the images of shape (NxCxHxW), where N is the number of images, C is the
+  number of channels, and H + W are sizes of spatial dimensions.
+  """
+
+  # Glob the data together
+  X = []
+
+  # Collect all *.jpg files
+  train_files = glob.glob(os.path.join(DATA_LOC, "train_set","images","*.jpg"))
+  val_files = glob.glob(os.path.join(DATA_LOC, "val_set","images","*.jpg"))
+  test_files = glob.glob(os.path.join(DATA_LOC, "test_set","images","*.jpg"))
+
+  # Concatentate the list of files
+  file_list = train_files + val_files + test_files
+
+  # save the sizes of each file so we can resize at the end
+  size_list = []
+  print("Loading in images:")
+  print(f"{len(file_list)} jpg files detected")
+  for f in file_list:
+    image= cv2.imread(f)
+    size_list.append((image.shape[0],image.shape[1]))
+    X.append(np.array(cv2.resize(image, (960, 540))))
+
+
+  # Stack images into 4D NxHxWxC
+  stack = np.array(X)
+
+  # Rearange channel dimension before returning
+  # NxHxWxC --> NxCxWxH --> NxCxHxW
+  stack = np.swapaxes(stack,1,3).swapaxes(2,3)
+  print()
+  print("Images loaded successfully")
+  return stack, (file_list, size_list)
+
+
 
 def configure_segmentation_model(task: int):
   """
@@ -48,6 +144,9 @@ def configure_segmentation_model(task: int):
   # Select model class as OCRNet
   model_class = globals()[config['graph']['model']]
 
+  # Update config dict so that weights are loaded in on cuda
+  config['gpu_device'] = 0
+
   # Utilize this config object to create the model object
   model = model_class(config=config['graph'], experiment=task)
 
@@ -57,14 +156,20 @@ def configure_segmentation_model(task: int):
   print("Loading model from saved checkpoint...")
   
   # Load in model checkpoint
-  checkpoint = torch.load(chkpt_loc, 'cuda:{}'.format(config['gpu_device']))
-  
-  # Set model to checkpoint
-  model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+  # this is required if it checkpoint trained on one device and now is loaded on a different device
+  # https://github.com/pytorch/pytorch/issues/15541
+  map_location = 'cuda:{}'.format(config['gpu_device'])
+  checkpoint = torch.load(str(chkpt_loc), map_location)
+  model.load_state_dict(checkpoint['model_state_dict'], strict=False) # todo fix this
 
-  print()
   print("Model successfully loaded from:")
   print(f"{chkpt_loc}")
+
+  # GPU Disabled for now: Transfer between GPU and CPU for results takes way to
+  # long.
+  # Move model to the GPU
+  model.cuda()
+
   return model
 
 def parse_config(file_path, device):
