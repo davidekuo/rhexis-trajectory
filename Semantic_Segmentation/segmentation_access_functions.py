@@ -11,22 +11,31 @@ from skimage import segmentation
 import matplotlib.pyplot as plt
 import numpy as np
 
-def label_to_numpy(full_file_path: str):
+
+def get_image_from_image_filename(filename_substring: str, DATA_LOC: str):
+  return filename_to_numpy(get_full_image_filename(filename_substring, DATA_LOC))
+
+
+def filename_to_numpy(full_file_path: str):
   """ 
-  Returns a numpy version of the requested label image
+  Returns a numpy version of the requested image at full_file_path
   """
   # Collect the image
-  label_image = cv2.imread(full_file_path)
+  img = cv2.imread(full_file_path)
+
+  # swap BGR to RGB (why???)
+  red = img[:,:,2].copy()
+  blue = img[:,:,0].copy()
+  img[:,:,0] = red
+  img[:,:,2] = blue
 
   # Cut off unneeded channels and return
-  return label_image[:,:,0]
+  return img
 
+def label_to_numpy(full_file_path: str):
+  return filename_to_numpy(full_file_path)[:,:,0]
 
-def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
-  """
-  Returns a numpy array of the label that corresponds to the requested image
-  """
-
+def get_full_image_filename(filename_substring: str, DATA_LOC: str):
   # First, determine the full file path of the requested image
   # Collect all *.jpg files
   train_files = glob.glob(os.path.join(DATA_LOC, "train_set","images","*.jpg"))
@@ -44,14 +53,27 @@ def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
     print("Error: Multiple files match substring")
     for f in files_found:
       print(f)
-    assert False, f"More than one image filename contains the substring '{filename_substring}', can not map to label"
+    assert False, f"More than one image filename contains the substring '{filename_substring}'"
 
   # If no file was found, throw an error
-  assert len(files_found) == 1, f"No image filename that contains the substring '{filename_substring}' was found, can not map to label."
+  assert len(files_found) == 1, f"No image filename that contains the substring '{filename_substring}' was found"
+
+  return files_found[0]
+
+
+
+def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
+  """
+  Returns a numpy array of the label that corresponds to the requested image
+  """
+
+  # See if we can find this image file
+  file_found = get_full_image_filename(filename_substring, DATA_LOC)
+
 
   # Determine the png label filename and the set the label is in
-  file_name_png = str.split(str.split(files_found[0],os.sep)[-1],'.')[0] + ".png"
-  label_set = str.split(files_found[0],os.sep)[-3]
+  file_name_png = str.split(str.split(file_found,os.sep)[-1],'.')[0] + ".png"
+  label_set = str.split(file_found,os.sep)[-3]
 
   # Get full label path from full image file path
   full_label_path = os.path.join(DATA_LOC, label_set, "labels",file_name_png)
@@ -61,27 +83,8 @@ def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
   return label_to_numpy(full_label_path)
 
 
-def create_colorized_label_image(label_image, task = 2, original_image = None):
-  """
-  Creates a false color figure of the label image to show label overlays
-  """
-
-  # First, get the corresponding class names for this task (default is 2)
-  label_class_names = get_labels(task)
-
-  # Generate image label
-  print(get_cadis_colormap(task))
-  return color.label2rgb(label_image, colors = get_cadis_colormap(task),
-    bg_label=0)
-
-
 def get_labels(task = 2):
   """
   Retruns a dict of the labels in a segmentation
   """
   return globals()[f'classes_exp{task}']
-
-
-def get_cadis_colormap(task = 2):
-  cmap = globals()['CADIS_CMAP']
-
