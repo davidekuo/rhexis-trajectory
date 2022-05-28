@@ -4,10 +4,22 @@ Functions to access segmentations
 import glob
 import os
 import cv2
+from utils import *
+from skimage import io
+from skimage import color
+from skimage import segmentation
+import matplotlib.pyplot as plt
+import numpy as np
 
 def label_to_numpy(full_file_path: str):
+  """ 
+  Returns a numpy version of the requested label image
+  """
+  # Collect the image
   label_image = cv2.imread(full_file_path)
-  return label_image
+
+  # Cut off unneeded channels and return
+  return label_image[:,:,0]
 
 
 def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
@@ -47,3 +59,29 @@ def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
 
   # Return a numpy version of the image
   return label_to_numpy(full_label_path)
+
+
+def create_colorized_label_image(label_image, task = 2, original_image = None):
+  """
+  Creates a false color figure of the label image to show label overlays
+  """
+
+  # First, get the corresponding class names for this task (default is 2)
+  label_class_names = get_labels(task)
+
+  # Generate image label
+  print(get_cadis_colormap(task))
+  return color.label2rgb(label_image, colors = get_cadis_colormap(task),
+    bg_label=0)
+
+
+def get_labels(task = 2):
+  """
+  Retruns a dict of the labels in a segmentation
+  """
+  return globals()[f'classes_exp{task}']
+
+
+def get_cadis_colormap(task = 2):
+  cmap = globals()['CADIS_CMAP']
+
