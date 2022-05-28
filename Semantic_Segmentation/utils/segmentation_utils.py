@@ -262,4 +262,6 @@ def parse_config(file_path, device):
       default_dict[k].update(config_dict[k])  # Overwrite defaults with the passed config values
 
   # Extra config bits needed
-  default_dict['data']['transform_values']
+  default_dict['data']['transform_values']['experiment'] = default_dict['data']['experiment']
+
+  return default_dict
