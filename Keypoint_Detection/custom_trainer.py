@@ -29,3 +29,12 @@ class CustomAugmentation(CocoTrainer):
       ]
     mapper = DatasetMapper(cfg, is_train=True, augmentations=augmentations)
     return build_detection_train_loader(cfg, mapper=mapper)
+
+
+class NoAugmentation(CocoTrainer):
+
+  @classmethod
+  def build_train_loader(cls, cfg):
+    augmentations = []
+    mapper = DatasetMapper(cfg, is_train=True, augmentations=augmentations)
+    return build_detection_train_loader(cfg, mapper=mapper)
