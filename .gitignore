@@ -3,7 +3,7 @@
 .DS_Store
 rhexis_config.txt
 *Icon
-
+*Icon?
 
 # Ignore pretrained models
 Semantic_Segmentation/MICCAI2021_Cataract_semantic_segmentation-main/logs
