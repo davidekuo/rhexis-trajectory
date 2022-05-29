@@ -1,5 +1,5 @@
 """
-Functions to access segmentations
+Functions to access segmentation from saved PNG images.
 """
 import glob
 import os
@@ -13,12 +13,29 @@ import numpy as np
 
 
 def get_image_from_image_filename(filename_substring: str, DATA_LOC: str):
+  """
+  Returns an numpy array of shape HxWxC in BGR (using cv2.imread)
+
+  Parameters:
+    filename_substring: A substring of the file you would like to get the image
+      data of.
+    DATA_LOC: the path to the data in your Google Drive
+
+  Returns: A numpy array of the requested image
+  """
   return filename_to_numpy(get_full_image_filename(filename_substring, DATA_LOC))
 
 
 def filename_to_numpy(full_file_path: str):
   """ 
   Returns a numpy version of the requested image at full_file_path
+    in BGR numpy (HxWxC)
+
+  Parameters:
+    full_file_path: A string containing a full file path to the image you would
+      like to read in
+
+  Returns: A numpy array of the requested image.
   """
   # Collect the image
   img = cv2.imread(full_file_path)
@@ -27,9 +44,32 @@ def filename_to_numpy(full_file_path: str):
   return img
 
 def label_to_numpy(full_file_path: str):
+  """ 
+  Returns a numpy version of the requested segmentation label at 
+    full_file_path in as a 2D numpy array (HxW)
+
+  Parameters:
+    full_file_path: A string containing a full file path to the image you would
+    like to read in.
+
+  Returns: A numpy array of the requested label segmentation.
+  """
   return filename_to_numpy(full_file_path)[:,:,0]
 
 def get_full_image_filename(filename_substring: str, DATA_LOC: str):
+  """
+  Gets the full image filename from any substring. Will fail if multiple image
+  filenames contain the specified substring or if no image filenames contain the
+  specified substring.
+
+  Parameters:
+    filename_substring: A substring of the file we would like returned
+
+    DATA_LOC: The path to the directory containing the datasets
+
+  Returns:
+    Full filename of the requested file
+  """
   # First, determine the full file path of the requested image
   # Collect all *.jpg files
   train_files = glob.glob(os.path.join(DATA_LOC, "train_set","images","*.jpg"))
@@ -58,7 +98,16 @@ def get_full_image_filename(filename_substring: str, DATA_LOC: str):
 
 def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
   """
-  Returns a numpy array of the label that corresponds to the requested image
+  Returns a numpy array of the label that corresponds to the requested image.
+
+  Parameters:
+    filename_substring: A substring of the image file we would like to get a
+      label for
+    
+    DATA_LOC: A path to the directory containing the dataset folders
+
+  Returns:
+    2D numpy array of the label (HxW)
   """
 
   # See if we can find this image file
@@ -80,5 +129,13 @@ def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
 def get_labels(task = 2):
   """
   Retruns a dict of the labels in a segmentation
+
+  Parameters:
+    task: Task is an integer (between 1 and 3) that contains the task we are
+      running. (Different tasks have different segmented classes) Default is 2.
+
+  Returns: A dict containing all of the labels. Keys are label integers
+    corresponding to the values in the label pngs and values are string names
+    that specify what the labels correspond to ("Pupil" etc)
   """
   return globals()[f'classes_exp{task}']
