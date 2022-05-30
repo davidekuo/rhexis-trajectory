@@ -2,7 +2,7 @@ from detectron2.config import get_cfg
 from detectron2 import model_zoo
 
 
-def load_cfg(model_string: str, MAX_ITER = 1500):
+def load_cfg(model_string: str, MAX_ITER = 1500, BASE_LR = 0.000025, OKS_SIGMAS = [0.03, 0.03], SOLVER_STEPS = []):
   """ Returns the config file for the specified model
   Parameters:
     model_string - String containing the model we would like to utilize
@@ -30,9 +30,9 @@ def load_cfg(model_string: str, MAX_ITER = 1500):
   cfg.DATALOADER.NUM_WORKERS = 2
   cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(f"COCO-Keypoints/{model_string}")  # Let training initialize from model zoo
   cfg.SOLVER.IMS_PER_BATCH = 2
-  cfg.SOLVER.BASE_LR = 0.000025  # pick a good LR
+  cfg.SOLVER.BASE_LR = BASE_LR  # pick a good LR
   cfg.SOLVER.MAX_ITER = MAX_ITER    # 300 was good for balloon toy dataset. Adjust up if val mAP is still rising, adjust down if overfit
-  cfg.SOLVER.STEPS = []        # do not decay learning rate
+  cfg.SOLVER.STEPS = SOLVER_STEPS   # do not decay learning rate
   cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   # faster, and good enough for balloon toy dataset (default: 512)
 
   cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # only has one class (utrada tip). (see https://detectron2.readthedocs.io/tutorials/datasets.html#update-the-config-for-new-datasets)
@@ -40,7 +40,7 @@ def load_cfg(model_string: str, MAX_ITER = 1500):
 
   cfg.MODEL.KEYPOINT_ON = True
   cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 2
-  cfg.TEST.KEYPOINT_OKS_SIGMAS = [0.03, 0.03]
+  cfg.TEST.KEYPOINT_OKS_SIGMAS = OKS_SIGMAS
 
   cfg.SOLVER.CHECKPOINT_PERIOD = 500
   # tells Detectron2 to save a model checkpoint every X iterations
@@ -51,3 +51,24 @@ def load_cfg(model_string: str, MAX_ITER = 1500):
   # cfg.DATALOADER.FILTER_EMPTY_ANNOTATIONS = False # keep and do not exclude images labeled to have no objects
 
   return cfg
+
+
+
+def create_experiment_name(model_string: str, BASE_LR = 0.000025, OKS_SIGMAS = [0.03, 0.03], SOLVER_STEPS = [], augmentation=False):
+  """
+  Creates a string for the wandb.ai experiment name that contains usefull info.
+  """
+
+  name = model_string + "_"
+  name = name + f"LR_{BASE_LR}" + "_"
+  name = name + f"OKS_SIGMAS_{OKS_SIGMAS[0]},{OKS_SIGMAS[1]}" + "_"
+  if not SOLVER_STEPS:
+    name = name + "LRDECAY_NONE"
+  else:
+    name = name + f"LRDECAY_ACTIVE-FirstAt{SOLVER_STEPS[0]}_"
+  if augmentation:
+    name = name + "augmentation_YES"
+  else:
+    name = name + "augmentation_NO"
+
+  return name
