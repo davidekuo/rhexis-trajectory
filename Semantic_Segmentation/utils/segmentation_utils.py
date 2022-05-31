@@ -137,8 +137,8 @@ def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False)
         labels_concat = np.concatenate(labels, axis = 0)
 
         # Update start_img_data and end_img_data for this batch
-        # Update start img_data by the previous value of end image data
-        start_img_data = start_img_data + end_img_data
+        # Update start img_data to the previous value of end image data
+        start_img_data = end_img_data
         
         # Update end image data by the current batch group size
         end_img_data = end_img_data + labels_concat.shape[0]
