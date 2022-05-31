@@ -160,11 +160,16 @@ def plot_images(remapped_mask, remapped_colormap, classes_exp, img = None):
   """
   mask_rgb = mask_to_colormap(remapped_mask, colormap=remapped_colormap)
   if img is not None:
+    # Ensure img and label have same spatial dims
+    if remapped_mask.shape != img.shape[0:2]:
+      print("WARNING: Image and label dimensions do not match")
+      print(f"Image shape: {img.shape}")
+      print(f"Label shape: {remapped_mask.shape}")
+
     fig, axs = plt.subplots(1, 2, figsize=(26, 7))
     plt.subplots_adjust(left=1 / 16.0, right=1 - 1 / 16.0, bottom=1 / 8.0, top=1 - 1 / 8.0)
 
     # We must swap from BGR to RGB because we utilized cv2.read to read in files
-    # swap BGR to RGB (why???)
     red = img[:,:,2].copy()
     blue = img[:,:,0].copy()
     img[:,:,0] = red

@@ -234,14 +234,15 @@ def extract_incision_position(label, label_dict):
 
   # Apply area filtering
   cornea_mask = area_body_filtering(cornea_mask)
-  cornea_mask = area_body_filtering(iris_mask)
-  cornea_mask = area_body_filtering(forcep_mask)
+  iris_mask = area_body_filtering(iris_mask)
+  forcep_mask = area_body_filtering(forcep_mask)
 
+  
   for i in range(3):
     # Diolate individuals masks
-    cornea_mask = binary_dilation(cornea_mask)
     iris_mask = binary_dilation(iris_mask)
     forcep_mask = binary_dilation(forcep_mask)
+    cornea_mask = binary_dilation(cornea_mask)
 
   # Determine regions that contain all three of these classes
   binary_mask = np.logical_and(cornea_mask, iris_mask)

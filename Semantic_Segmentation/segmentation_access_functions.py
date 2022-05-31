@@ -56,7 +56,7 @@ def label_to_numpy(full_file_path: str):
   """
   return filename_to_numpy(full_file_path)[:,:,0]
 
-def get_full_image_filename(filename_substring: str, DATA_LOC: str):
+def get_full_image_filename(filename_substring: str, DATA_LOC: str, subdir_names = []):
   """
   Gets the full image filename from any substring. Will fail if multiple image
   filenames contain the specified substring or if no image filenames contain the
@@ -71,13 +71,13 @@ def get_full_image_filename(filename_substring: str, DATA_LOC: str):
     Full filename of the requested file
   """
   # First, determine the full file path of the requested image
-  # Collect all *.jpg files
-  train_files = glob.glob(os.path.join(DATA_LOC, "train_set","images","*.jpg"))
-  val_files = glob.glob(os.path.join(DATA_LOC, "val_set","images","*.jpg"))
-  test_files = glob.glob(os.path.join(DATA_LOC, "test_set","images","*.jpg"))
+  if not subdir_names:
+    subdir_names = ["train_set", "val_set", "test_set"]
 
-  # Concatentate the list of files
-  file_list = train_files + val_files + test_files
+  # Collect all files
+  file_list = []
+  for name in subdir_names:
+    file_list = file_list + glob.glob(os.path.join(DATA_LOC, name,"images","*"))
 
   # find the requested file in the list of files
   files_found = [f for f in file_list if filename_substring in f]
@@ -96,7 +96,7 @@ def get_full_image_filename(filename_substring: str, DATA_LOC: str):
 
 
 
-def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
+def get_label_from_image_filename(filename_substring: str, DATA_LOC: str, subdir_names=[]):
   """
   Returns a numpy array of the label that corresponds to the requested image.
 
@@ -111,7 +111,7 @@ def get_label_from_image_filename(filename_substring: str, DATA_LOC: str):
   """
 
   # See if we can find this image file
-  file_found = get_full_image_filename(filename_substring, DATA_LOC)
+  file_found = get_full_image_filename(filename_substring, DATA_LOC, subdir_names)
 
 
   # Determine the png label filename and the set the label is in

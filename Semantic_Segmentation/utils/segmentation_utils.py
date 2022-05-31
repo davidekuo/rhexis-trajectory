@@ -15,41 +15,38 @@ import numpy as np
 import glob
 import cv2
 import time
+import math
 
-def make_label_directories(DATA_LOC):
-  # Create label folders
-  train_folder = os.path.join(DATA_LOC, "train_set", "labels")
-  val_folder = os.path.join(DATA_LOC, "val_set", "labels")
-  test_folder = os.path.join(DATA_LOC, "test_set", "labels")
+def make_label_directories(DATA_LOC, subdir_names = []):
 
-  try:
-    os.mkdir(train_folder)
-  except OSError as error:
-    print("train_set label folder already exists | overwriting labels")
+  if not subdir_names:
+    subdir_names = ['train_set', 'val_set', 'test_set']
+  
+  # Create these folders
+  for name in subdir_names:
+    folder_to_create = os.path.join(DATA_LOC, name, "labels")
+    
+    try:
+      os.mkdir(folder_to_create)
+    except OSError as error:
+      pass
+      #print(f"{name} label folder already exists | overwriting labels")
 
-  try:
-    os.mkdir(val_folder)
-  except OSError as error:
-    print("val_set label folder already exists | overwriting labels")
-
-  try:
-    os.mkdir(test_folder)
-  except OSError as error:
-    print("test_set label folder already exists | overwriting labels")
-
-def create_label_images(labels, img_data, DATA_LOC):
+def create_label_images(labels, img_data, DATA_LOC, subdir_names = []):
   """
   Creates images of all of our labels
   """
   # Keep track of how many images saved successfully and which ones did not
   success_count = 0
+
+  # Keeps track of which images
   failures = []
 
   # Unpack img_data
   file_list, size_list = img_data
 
   # Make the label directories, if they do not exist
-  make_label_directories(DATA_LOC)
+  make_label_directories(DATA_LOC, subdir_names)
 
   # For each image
   for i in range(labels.shape[0]):
@@ -77,33 +74,40 @@ def create_label_images(labels, img_data, DATA_LOC):
     else:
       failures.append(f)
 
-  print(f"Successfully saved {success_count} out of {labels.shape[0]} labels")
-
   if len(failures) > 0:
     print("Images that failed to generate labels:")
     for fail in failures:
       print(fail)
+  
+  print("")
+  print(f"Successfully made an intermediate save of {success_count} label images")
+  print("")
+  return success_count
 
-
-print("Successfully created {i}/{")
-
-def create_labels(model, x, test_mode = False):
+def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False):
   """
   Reads in our data and creates labels by running them through a forward pass
   """
   # Intialize return structure
   labels = []
+  success_count = 0
 
-  # Syncronize cuda
+  # Keep track of which img_data we need to pass to create_labels
+  start_img_data = 0
+  end_img_data = 0
+
+  # Syncronize cuda (DISABLED FOR NOW)
   #torch.cuda.synchronize()
 
   # Create batches
-  num_batches = 50
-  batches = np.split(x, num_batches)
+  num_batches = math.ceil(x.shape[0]/ 20)
+  
+  # Split x into num_batches batches (can be different sizes)
+  batches = np.array_split(x, num_batches, axis = 0)
   print("Creating Labels:")
 
+  # If we are in test mode, let's only look at two batches
   if test_mode:
-    # If we are in test mode, let's make batches smaller
     batches = batches[0:2]
 
   for i, x_batch in enumerate(batches):
@@ -117,42 +121,75 @@ def create_labels(model, x, test_mode = False):
       print("-Calculating softmax and outputing labels")
       # Compute the label predictions using a 2D softmax
       label_predictions = torch.argmax(torch.nn.Softmax2d()(logits), dim=1).cpu().numpy()
+      
+      # Clear Logits to conserve GPU RAM
+      del logits
 
       # Append results
       labels.append(label_predictions)
-    print(f"-Completed after {time.time() - start_time} seconds")
+      print(f"-Completed after {time.time() - start_time} seconds")
 
-  # Concatenate all batch results and return
-  return np.concatenate(labels,axis = 0)
+      # If we are at a 50th batch, let's save the labels and reset to
+      # conserve CPU RAM
+      if (i!=0 and i % 50 == 0) or i == len(batches) - 1:
 
+        # concatenate the labels together
+        labels_concat = np.concatenate(labels, axis = 0)
 
+        # Update start_img_data and end_img_data for this batch
+        # Update start img_data by the previous value of end image data
+        start_img_data = start_img_data + end_img_data
+        
+        # Update end image data by the current batch group size
+        end_img_data = end_img_data + labels_concat.shape[0]
 
+        print(f"Starting intermediate save of {end_img_data - start_img_data} label images ...")
 
+        # Split the img_data for this batch group
+        split_0 = img_data[0][start_img_data:end_img_data]
+        split_1 = img_data[1][start_img_data:end_img_data][:]
+        img_data_split = (split_0, split_1)
 
+        # Create the label images
+        # Increment success count by the number of successful images saved
+        success_count += create_label_images(labels_concat, img_data_split, DATA_LOC, subdir_names)
 
+        # clear labels to conserve CPU RAM
+        labels = []
 
-def read_in_images(DATA_LOC: str):
+        # delete labels_concat to conserve CPU RAM
+        del labels_concat
+
+  if test_mode:
+    total_labels_test_mode = len(batches[0]) + len(batches[1])
+    print(f"Successfully saved {success_count} out of {total_labels_test_mode} labels")
+  else:
+    print(f"Successfully saved {success_count} out of {x.shape[0]} labels")
+  
+
+def read_in_images(DATA_LOC: str, subdir_names = []):
   """
   Reads in images from the dataset location and returns a numpy array containing
   the images of shape (NxCxHxW), where N is the number of images, C is the
   number of channels, and H + W are sizes of spatial dimensions.
   """
 
+  if not subdir_names:
+    subdir_names = ['train_set', 'val_set', 'test_set']
+
   # Glob the data together
   X = []
 
-  # Collect all *.jpg files
-  train_files = glob.glob(os.path.join(DATA_LOC, "train_set","images","*.jpg"))
-  val_files = glob.glob(os.path.join(DATA_LOC, "val_set","images","*.jpg"))
-  test_files = glob.glob(os.path.join(DATA_LOC, "test_set","images","*.jpg"))
-
-  # Concatentate the list of files
-  file_list = train_files + val_files + test_files
+  # Collect all *.jpg files in sub-directories
+  file_list = []
+  for name in subdir_names:
+    files_at_name_folder = glob.glob(os.path.join(DATA_LOC, name, "images", "*"))
+    file_list = file_list + files_at_name_folder
 
   # save the sizes of each file so we can resize at the end
   size_list = []
   print("Loading in images:")
-  print(f"{len(file_list)} jpg files detected")
+  print(f"{len(file_list)} image files detected")
   for f in file_list:
     image= cv2.imread(f)
     size_list.append((image.shape[0],image.shape[1]))
@@ -168,8 +205,6 @@ def read_in_images(DATA_LOC: str):
   print()
   print("Images loaded successfully")
   return stack, (file_list, size_list)
-
-
 
 def configure_segmentation_model(task: int):
   """
