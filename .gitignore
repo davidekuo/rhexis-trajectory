@@ -4,6 +4,10 @@
 rhexis_config.txt
 *Icon
 *Icon?
+*mp4
+*png
+*jpg
+*pth
 
 # Ignore pretrained models
 Semantic_Segmentation/MICCAI2021_Cataract_semantic_segmentation-main/logs
