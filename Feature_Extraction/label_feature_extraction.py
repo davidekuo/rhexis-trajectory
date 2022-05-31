@@ -80,7 +80,7 @@ def extract_pupil_filled(label, label_dict):
   pupil_mask = get_class_segmentation(label, pupil_int)
 
   # Only keep large bodies in pupil mask
-  binary_mask = area_body_filtering(pupil_mask, thresh = 0.25)
+  binary_mask = getLargestCC(pupil_mask)
 
   # Apply convx_hull_image transform
   binary_mask = convex_hull_image(binary_mask)
@@ -199,6 +199,12 @@ def extract_pupil_extents(label, label_dict):
 
   return [left, right, up, down]
 
+
+def getLargestCC(segmentation):
+    labels = label(segmentation)
+    assert( labels.max() != 0 ) # assume at least 1 CC
+    largestCC = labels == np.argmax(np.bincount(labels.flat)[1:])+1
+    return largestCC
 
 def area_body_filtering(mask, thresh = 0.25):
   """

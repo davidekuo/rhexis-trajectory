@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def get_image_from_image_filename(filename_substring: str, DATA_LOC: str):
+def get_image_from_image_filename(filename_substring: str, DATA_LOC: str, subdir_names = []):
   """
   Returns an numpy array of shape HxWxC in BGR (using cv2.imread)
 
@@ -23,7 +23,7 @@ def get_image_from_image_filename(filename_substring: str, DATA_LOC: str):
 
   Returns: A numpy array of the requested image
   """
-  return filename_to_numpy(get_full_image_filename(filename_substring, DATA_LOC))
+  return filename_to_numpy(get_full_image_filename(filename_substring, DATA_LOC, subdir_names))
 
 
 def filename_to_numpy(full_file_path: str):
