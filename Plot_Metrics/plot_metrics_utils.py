@@ -55,6 +55,7 @@ def plot_kp_bbox_AP_loss(ap_loss_labels):
     plt.legend()
     # plt.show()
     plt.savefig('kp_AP.png', bbox_inches='tight')
+    plt.clf()
 
     # Plot bbox/AP
     for AP, loss, label in ap_loss_labels:
@@ -65,6 +66,7 @@ def plot_kp_bbox_AP_loss(ap_loss_labels):
     plt.legend()
     # plt.show()
     plt.savefig('bbox_AP.png', bbox_inches='tight')
+    plt.clf()
 #
     # Plot total loss
     for AP, loss, label in ap_loss_labels:
@@ -75,3 +77,4 @@ def plot_kp_bbox_AP_loss(ap_loss_labels):
     plt.legend()
     # plt.show()
     plt.savefig('loss.png', bbox_inches='tight')
+    plt.clf()
