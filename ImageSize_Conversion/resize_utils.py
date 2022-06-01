@@ -22,16 +22,14 @@ def create_img_data_dict(img_data, img_data_dict):
 def create_search_annotate_dict(annotate_dict_list):
   search_annotate_dict = {}
   for annotate_dict in annotate_dict_list:
-    an_id = annotate_dict['id']
+    an_id = annotate_dict['image_id']
     search_annotate_dict.setdefault(an_id, annotate_dict)
   return search_annotate_dict
-
-
 
 def caculate_scales(ori_size, new_size):
   # Determine how much we should scale
   height_scale = new_size[0] / ori_size[0]
-  width_scale = new_size[1] / new_size[0]
+  width_scale = new_size[1] / ori_size[1]
 
   return height_scale, width_scale
 
@@ -67,7 +65,7 @@ def correct_bbox(bbox_original, ori_size, new_size):
 
   # Scale width
   width = round(width_scale * bbox_original[2],2)
-  height = round(height_scale * bbox_original[2],2)
+  height = round(height_scale * bbox_original[3],2)
 
   # Set new bbox
   new_bbox = [top_left_x, top_left_y, width, height]
@@ -78,17 +76,16 @@ def correct_bbox(bbox_original, ori_size, new_size):
   return new_bbox, new_area
 
 
-
-
-def correct_all_json_files(STANDARD_SIZE, DATA_LOC : str, NEW_DATA_LOC : str, img_data, subdir_names = []):
+def correct_all_json_files(STANDARD_SIZE, DATA_LOC : str, NEW_DATA_LOC : str, img_data_list, subdir_names = []):
   # store returns in list
   json_dict_list = []
-  for name in subdir_names:
-    json_dict_list.append(correct_json_file(STANDARD_SIZE, DATA_LOC, NEW_DATA_LOC, img_data, name))
+  for i, name in enumerate(subdir_names):
+    json_dict_list.append(correct_json_file(STANDARD_SIZE, DATA_LOC, NEW_DATA_LOC, img_data_list[i], name))
   
   return json_dict_list
 
-def correct_json_file(STANDARD_SIZE, DATA_LOC : str, NEW_DATA_LOC : str, img_data, subdir_name : str):
+
+def find_json_file(DATA_LOC:str, subdir_name:str):
   # Find the json file
   json_files = glob.glob(os.path.join(DATA_LOC, subdir_name, "*.json"))
 
@@ -96,8 +93,14 @@ def correct_json_file(STANDARD_SIZE, DATA_LOC : str, NEW_DATA_LOC : str, img_dat
   assert len(json_files) > 0, f"No json file found in {subdir_name}"
   assert len(json_files) == 1, f"More than one json file found in {subdir_name}"
 
-  # Start by reading in the json file
-  json_filename = json_files[0]
+  # Return json file
+  return json_files[0]
+
+
+def correct_json_file(STANDARD_SIZE, DATA_LOC : str, NEW_DATA_LOC : str, img_data, subdir_name : str):
+
+  # get json file 
+  json_filename = find_json_file(DATA_LOC, subdir_name)
 
   # Get the json_dict
   json_dict = read_in_json(json_filename)
@@ -148,7 +151,7 @@ def correct_json_file(STANDARD_SIZE, DATA_LOC : str, NEW_DATA_LOC : str, img_dat
       # if we have a bbox, set the new bbox and area
       if bbox_original is not None:
         # Set new bbox and area
-        ori_size = (ori_height, ori_width)
+        ori_size = (ori_width, ori_height)
         bbox_new, area_new = correct_bbox(bbox_original, ori_size, STANDARD_SIZE)
 
         # set in dict
@@ -203,7 +206,16 @@ def make_resized_image_directories(NEW_DATA_LOC, subdir_names = []):
       pass
       print(f"{name} label folder already exists")
 
-def create_resized_images(images, img_data, NEW_DATA_LOC, subdir_names = []):
+
+def create_resized_images_all(stack_list, img_data_list, NEW_DATA_LOC, subdir_names=[]):
+  if not subdir_names:
+    subdir_names = ['train_set', 'val_set', 'test_set']
+  
+  # Create these folders
+  for i, name in enumerate(subdir_names):
+    create_resized_images(stack_list[i], img_data_list[i], NEW_DATA_LOC, name)
+
+def create_resized_images(images, img_data, NEW_DATA_LOC, name):
   """
   Creates resized images of all of our images
   """
@@ -217,7 +229,7 @@ def create_resized_images(images, img_data, NEW_DATA_LOC, subdir_names = []):
   file_list, size_list = img_data
 
   # Make the label directories, if they do not exist
-  make_resized_image_directories(NEW_DATA_LOC, subdir_names)
+  make_resized_image_directories(NEW_DATA_LOC, [name])
 
   # For each image
   for i in range(images.shape[0]):
@@ -225,7 +237,9 @@ def create_resized_images(images, img_data, NEW_DATA_LOC, subdir_names = []):
     f = file_list[i]
 
     # Determine the name of this image
-    file_name = str.split(str.split(f, os.sep)[-1],".")[0]
+    ext_len = len(str.split(str.split(f, os.sep)[-1],".")[-1])
+
+    file_name = str.split(f, os.sep)[-1][0:-(ext_len + 1)]
     
     # Determine which set the image is in
     image_set = str.split(f, os.sep)[-3]
@@ -245,37 +259,45 @@ def create_resized_images(images, img_data, NEW_DATA_LOC, subdir_names = []):
       print(fail)
   
   print("")
-  print(f"Successfully saved {success_count} resized images")
+  print(f"Successfully saved {success_count} resized images for {name}")
   print("")
-  return success_count
 
 
-def read_in_images(DATA_LOC: str, STANDARD_SIZE,subdir_names = []):
+
+def read_in_all_images(DATA_LOC: str, STANDARD_SIZE,subdir_names = []):
+  if not subdir_names:
+    subdir_names = ['train_set', 'val_set', 'test_set']
+
+  stack_list = []
+  img_data_list = []
+  for name in subdir_names:
+    stack, img_data = read_in_images(DATA_LOC, STANDARD_SIZE, name)
+    stack_list.append(stack)
+    img_data_list.append(img_data)
+
+  return stack_list, img_data_list
+
+
+def read_in_images(DATA_LOC: str, STANDARD_SIZE, name):
   """
   Reads in images from the dataset location and returns a numpy array containing
   the images of shape (NxHxWxC), where N is the number of images, C is the
   number of channels, and H + W are sizes of spatial dimensions.
   """
 
-  if not subdir_names:
-    subdir_names = ['train_set', 'val_set', 'test_set']
-
   # Glob the data together
   X = []
 
-  # Collect all *.jpg files in sub-directories
-  file_list = []
-  for name in subdir_names:
-    files_at_name_folder = glob.glob(os.path.join(DATA_LOC, name, "images", "*"))
-    file_list = file_list + files_at_name_folder
+  # Collect all *.jpg files in sub-directory 'name'
+  file_list = glob.glob(os.path.join(DATA_LOC, name, "images", "*"))
 
   # save the sizes of each file so we can resize at the end
   size_list = []
-  print("Loading in and resizing images:")
+  print("Loading in and resizing images from {name}:")
   print(f"{len(file_list)} image files detected")
   for f in file_list:
-    image= cv2.imread(f)
-    size_list.append((image.shape[0],image.shape[1]))
+    image = cv2.imread(f)
+    size_list.append((image.shape[0], image.shape[1]))
     X.append(np.array(cv2.resize(image, (STANDARD_SIZE[0], STANDARD_SIZE[1]))))
 
 
