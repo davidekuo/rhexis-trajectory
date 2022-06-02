@@ -114,7 +114,10 @@ class RhexisVisualizer:
       out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
       cv2_imshow(out.get_image()[:, :, ::-1])
 
-
+  def predict_keypoint_features(self, im):
+    with warnings.catch_warnings():
+      warnings.simplefilter("ignore")
+      return self.predictor(im)
 
   def compare_labels(self, set_to_sample = "test", num_images = 5, sampled_list = None):
 
@@ -141,21 +144,9 @@ class RhexisVisualizer:
         warnings.simplefilter("ignore")
         outputs = self.predictor(im)
 
-      pr_bbox = None
-      try:
-        pr_bbox = outputs['instances'].pred_boxes.tensor.cpu().numpy()[0]
-        pr_bbox = convert_bbox(pr_bbox)
-      except:
-        print("No bbox")
-        pass
+      pr_bbox = self.get_bbox_prediction(outputs)[0]
 
-      pr_keypoints = None
-      try:
-        pr_keypoints = outputs['instances'].pred_keypoints.cpu().numpy()[0]
-        pr_keypoints = pr_keypoints.flatten()
-      except:
-        print("No keypoints")
-        pass
+      pr_keypoints = self.get_keypoint_prediction(outputs)[0]
 
       print("Ground Truth is green")
       print("Predictions are blue")
@@ -166,3 +157,30 @@ class RhexisVisualizer:
         im = compare_keypoints(im, gt_keypoint, pr_keypoints)
 
       cv2_imshow(im)
+
+  def get_bbox_prediction(self, outputs):
+    try:
+      print_dict(outputs)
+      pr_bboxes = outputs['instances'].pred_boxes.tensor.cpu().numpy()
+      bbox_list = []
+      for bbox in pr_bboxes:
+        bbox_list.append(convert_bbox(bbox))
+    except:
+      bbox_list = None
+    return bbox_list
+  
+  def get_keypoint_prediction(self, outputs):
+    try:
+      pr_keypoints_list = outputs['instances'].pred_keypoints.cpu().numpy()
+      keypoint_list = []
+      for keypoints in pr_keypoints_list:
+        keypoint_list.append(keypoints.flatten())
+    except:
+      keypoint_list = None
+    return keypoint_list
+
+def print_dict(a_dict):
+  for item in a_dict.items():
+    print(item[0])
+    print(item[1])
+    print()
