@@ -28,9 +28,6 @@ def generate_trajectories(DATA_LOC: str, subdir_list, BEST_MODEL_CHECKPOINT, use
     print(f"Folder {f} of {len(subdir_list)}")
     generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder)
 
-
-
-
 def intalize_csv_dict(csv_dict):
   # FRAME NUM | IMAGE_FILENAME | KeyL_X | KeyL_Y | KeyR_X | KeyR_Y | BBOX | Pupil Center | Pupil Extents x4 | Incision |
   csv_dict.setdefault("frame_num", [])
