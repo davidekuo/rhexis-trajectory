@@ -17,6 +17,18 @@ import cv2
 import time
 import math
 
+def semantic_segmentation(DATA_LOC, subdir_names, task = 2, test_mode=True, use_image_subdir = True):
+  # Set up model
+  model = configure_segmentation_model(task)
+
+  # Read in images
+  x, img_data = read_in_images(DATA_LOC, subdir_names, use_image_subdir)
+
+  # Create labels
+  create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode, use_image_subdir)
+
+
+
 def make_label_directories(DATA_LOC, subdir_names = []):
 
   if not subdir_names:
@@ -32,7 +44,7 @@ def make_label_directories(DATA_LOC, subdir_names = []):
       pass
       #print(f"{name} label folder already exists | overwriting labels")
 
-def create_label_images(labels, img_data, DATA_LOC, subdir_names = []):
+def create_label_images(labels, img_data, DATA_LOC, subdir_names = [], use_image_subdir = True):
   """
   Creates images of all of our labels
   """
@@ -57,7 +69,11 @@ def create_label_images(labels, img_data, DATA_LOC, subdir_names = []):
     file_name = str.split(str.split(f, os.sep)[-1],".")[0]
     
     # Determine which set the image is in
-    image_set = str.split(f, os.sep)[-3]
+    image_set = ""
+    if use_image_subdir:
+      image_set = str.split(f, os.sep)[-3]
+    else:
+      image_set = str.split(f, os.sep)[-2]
 
     # Create final image path
     label_path = os.path.join(DATA_LOC, image_set, "labels", file_name + ".png")
@@ -84,7 +100,7 @@ def create_label_images(labels, img_data, DATA_LOC, subdir_names = []):
   print("")
   return success_count
 
-def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False):
+def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False, use_image_subdir = True):
   """
   Reads in our data and creates labels by running them through a forward pass
   """
@@ -108,6 +124,7 @@ def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False)
 
   # If we are in test mode, let's only look at two batches
   if test_mode:
+    print("Test mode is active: Only will compute two batches")
     batches = batches[0:2]
 
   for i, x_batch in enumerate(batches):
@@ -152,7 +169,7 @@ def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False)
 
         # Create the label images
         # Increment success count by the number of successful images saved
-        success_count += create_label_images(labels_concat, img_data_split, DATA_LOC, subdir_names)
+        success_count += create_label_images(labels_concat, img_data_split, DATA_LOC, subdir_names, use_image_subdir)
 
         # clear labels to conserve CPU RAM
         labels = []
@@ -167,7 +184,7 @@ def create_labels(model, x, img_data, DATA_LOC, subdir_names, test_mode = False)
     print(f"Successfully saved {success_count} out of {x.shape[0]} labels")
   
 
-def read_in_images(DATA_LOC: str, subdir_names = []):
+def read_in_images(DATA_LOC: str, subdir_names = [], use_image_subdir = True):
   """
   Reads in images from the dataset location and returns a numpy array containing
   the images of shape (NxCxHxW), where N is the number of images, C is the
@@ -183,7 +200,12 @@ def read_in_images(DATA_LOC: str, subdir_names = []):
   # Collect all *.jpg files in sub-directories
   file_list = []
   for name in subdir_names:
-    files_at_name_folder = glob.glob(os.path.join(DATA_LOC, name, "images", "*"))
+    files_at_name_folder = []
+    if use_image_subdir:
+      files_at_name_folder = glob.glob(os.path.join(DATA_LOC, name, "images", "*"))
+    else:
+      print("Not using image subdirectory in image path name")
+      files_at_name_folder = glob.glob(os.path.join(DATA_LOC, name, "*.jpg"))
     file_list = file_list + files_at_name_folder
 
   # save the sizes of each file so we can resize at the end

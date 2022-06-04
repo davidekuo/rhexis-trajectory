@@ -229,7 +229,7 @@ def plot_images(remapped_mask, remapped_colormap, classes_exp, img = None):
     return fig
 
 
-def plot_experiment(label_image, experiment=1,image = None):
+def plot_experiment(label_image, experiment=2,image = None):
   """
   Generates plot of image and rgb mask with colorbar for specified experiment
   :param img_path: Path to input image

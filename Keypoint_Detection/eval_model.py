@@ -160,7 +160,8 @@ class RhexisVisualizer:
 
   def get_bbox_prediction(self, outputs):
     try:
-      print_dict(outputs)
+      #remove this print when done with dev
+      #print_dict(outputs)
       pr_bboxes = outputs['instances'].pred_boxes.tensor.cpu().numpy()
       bbox_list = []
       for bbox in pr_bboxes:
