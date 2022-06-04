@@ -1,8 +1,12 @@
 # 👁⚕️ Capsulorrhexis Trajectories for Automated Surgical Training Feedback 
 
+
+![Alt Text](https://github.com/davidekuo/rhexis-trajectory/blob/main/rhexis_trajectory_output.gif)
+
+
 Our project is composed of two parts:
-1) Keypoint detection using the Detectron 2 Model
-2) Trajectory Classification
+1) Keypoint detection using the Detectron 2 Model (CS 231N)
+2) Trajectory Classification (CS 229)
 
 ## 💻 Contributors 
 David Kuo MD, Ben Viggiano, Riya Sinha, Ben Ehlert
