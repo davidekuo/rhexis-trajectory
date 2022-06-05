@@ -7,8 +7,13 @@ import glob
 import pandas as pd
 
 
-def normalize_coords(path_dfs, path_vid_sizes):
-  pass
+def normalize_coords(path_df, path_vid_size):
+  height, width = path_vid_size
+  for column in path_df:
+    if column.endswith(("_x", "_width")):
+      path_df[column] = path_df[column] / width
+    if column.endswith(("_y", "_height")):
+      path_df[column] = path_df[column] / height
 
 def load_all_pulls(DATA_LOC:str):
   output_folder = os.path.join(DATA_LOC,"OUTPUT")
@@ -17,7 +22,7 @@ def load_all_pulls(DATA_LOC:str):
   files = os.listdir(output_folder)
   csvs = [csv for csv in files if csv.endswith(".csv")]
   path_dfs = [load_pull(os.path.join(output_folder,csv)) for csv in csvs]
-  print(path_dfs)
+  # print(path_dfs)
   labels = [file_label(csv) for csv in csvs]
 
   # Read in pull_info.csv
@@ -25,8 +30,8 @@ def load_all_pulls(DATA_LOC:str):
   path_vid_sizes = [get_video_resolution(video_size_df, csv.split('_fea')[0]) for csv in csvs]
 
   # Normalize all coords to size of image
-  for path in path_df:
-    normalize_coords(path, path_vid_sizes)
+  for path, path_vid_size in zip(path_dfs, path_vid_sizes):
+    normalize_coords(path, path_vid_size)
 
   names = [csv.split('_fea')[0] for csv in csvs]
   return names, path_dfs, labels, path_vid_sizes
