@@ -5,6 +5,7 @@ import os
 import sys
 import glob
 import pandas as pd
+import numpy as np
 
 
 def normalize_coords(path_df, path_vid_size):
@@ -78,3 +79,91 @@ def file_label(filename):
     return 2
   else:
     raise Exception("Unhandled filetype: " + filename)
+
+def featurize_pull(pull, num_bins=20):
+  """
+  Performs all featurizations for an individual pull
+
+  Args:
+    pull: The pull dataframe to convert to a feature row
+
+  Returns:
+    row: A feature row for the pull
+  """
+  angles = pull_to_angles(pull)
+  hist, bins = angles_to_bins(angles, num_bins)
+
+  length = pull_to_length(pull)
+  mean_velocity, mean_accel = pull_to_velocities_and_accelerations(pull)
+
+  features = np.append(hist, np.array([length, mean_velocity, mean_accel]))
+
+  return features
+
+def pull_to_length(pull):
+  """
+  Args:
+    pull: The dataframe for the pull to conver to velocities
+
+  Return:
+    velocities: velocities calculated as distance traveled per frame
+  """
+  return len(pull)
+
+def pull_to_velocities_and_accelerations(pull):
+  """
+  Args:
+    pull: The dataframe for the pull to conver to velocities
+  
+  Return:
+    mean velocity: velocity calculated as distance traveled per frame
+    mean acceleration: acceleration calculated as change in velocity between frames
+  """
+  x, y = pull.key_L_x, pull.key_L_y
+  velocities = []
+  accelerations = []
+
+  for i in range(len(x)-1):
+    x1, x2 = x[i:i+2]
+    y1, y2 = y[i:i+2]
+    velocities.append(np.sqrt(np.square(x2 - x1) + np.square(y2 - y1)))
+
+  for i in range(len(velocities) - 1):
+    accelerations.append(np.abs(velocities[i+1] - velocities[i]))
+
+  return (np.mean(velocities), np.mean(accelerations))
+
+def pull_to_angles(pull):
+  """
+  Args:
+    pull: The dataframe for the pull to convert to angles
+
+  Return:
+    angles: The angles for each triple of datapoints
+  """
+  x, y = pull.key_L_x, pull.key_L_y
+  angles = []
+  for i in range(len(x)-2):
+    x1, x2, x3 = x[i:i+3]
+    y1, y2, y3 = y[i:i+3]
+    v1 = np.array([x1-x2, y1-y2])
+    v2 = np.array([x3-x2, y3-y2])
+    angle_nocos = np.dot(v1, v2) / (np.linalg.norm(v1, 2) * np.linalg.norm(v2, 2))
+    angle_floor = np.where(angle_nocos < -1, -1.0, angle_nocos)
+    angle_ceil = np.where(angle_floor > 1, 1.0, angle_floor) 
+    angle = np.arccos(angle_ceil) * 180 / np.pi
+    angles.append(angle)
+  return angles
+
+
+def angles_to_bins(angles, num_bins=20):
+  """
+  Args:
+    angles: the list of angles to bin
+
+  Returns:
+    histogram: histogram values
+    bins: histogram bins
+  """
+  bins = [i for i in range(0, 181, 180//num_bins)] 
+  return np.histogram(angles, bins)
