@@ -66,7 +66,10 @@ def create_label_images(labels, img_data, DATA_LOC, subdir_names = [], use_image
     f = file_list[i]
 
     # Determine the name of this image
-    file_name = str.split(str.split(f, os.sep)[-1],".")[0]
+    file_with_extension = str.split(f,os.sep)[-1]
+    extension_length = len(str.split(file_with_extension,'.')[-1])
+    file_name = file_with_extension[0:-extension_length-1]
+    print(file_name)
     
     # Determine which set the image is in
     image_set = ""

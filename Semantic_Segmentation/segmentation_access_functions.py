@@ -119,7 +119,10 @@ def get_label_from_image_filename(filename_substring: str, DATA_LOC: str, subdir
 
 
   # Determine the png label filename and the set the label is in
-  file_name_png = str.split(str.split(file_found,os.sep)[-1],'.')[0] + ".png"
+  file_with_jpg_extension = str.split(file_found,os.sep)[-1]
+  extension_length = len(str.split(file_found,'.')[-1])
+
+  file_name_png = file_with_jpg_extension[0:-extension_length-1] + ".png"
 
   label_set = ""
   if use_image_dir:
