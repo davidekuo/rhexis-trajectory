@@ -21,8 +21,21 @@ For the purposes of this project, we focus solely on the capsulorrhexis step of 
 
 
 Our project is composed of two parts:
-1) Keypoint detection using the Detectron 2 Model (CS 231N)
-2) Trajectory Classification (CS 229)
+* **For CS231n:** 
+  * Keypoint detection using a Detectron 2 Model
+  * Semantic Segmentation utilizing the [MICCAI2021 Cataract Semantic Segmentation Model](https://github.com/RViMLab/MICCAI2021_Cataract_semantic_segmentation) from [Robotics and Vision in Medicine Lab at King's College of London](https://rvim.online/)
+
+* **For CS229:** 
+  * Feature engineering and feature selection with PCA from the output of our 231n model
+  * Trajectory Classification for feedback using various methods (Logistic Regression, Quadratic GDA, and MLP Classifier)
+
+
+
+An illistration of our full project is shown below:
+
+![alt text](https://github.com/davidekuo/rhexis-trajectory/blob/main/ModelOverview.png)
+
+
 
 ## CS231n Project
 The focus of our CS231N project is to develop a keypoint detection model that tracks the tips of the utrada forceps instrument over the course of the capsulorrhexis in order to generate instrument trajectories. These instrument trajectories will then be fed to downstream models (the focus of our CS229 project) to generate quantitative and automated feedback for training cataract surgeons. Additionally, we employ a pretrained semantic segmentation model to generate additional features of interest such as pupil center and boundaries as well as incision location (which can be more challenging to label with keypoints) to further enrich our feedback.
