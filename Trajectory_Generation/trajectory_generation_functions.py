@@ -22,11 +22,11 @@ from detectron2.config import get_cfg
 from google.colab.patches import cv2_imshow
 import numpy as np
 
-def generate_trajectories(DATA_LOC: str, subdir_list, BEST_MODEL_CHECKPOINT, use_image_folder = False):
+def generate_trajectories(DATA_LOC: str, subdir_list, BEST_MODEL_CHECKPOINT, use_image_folder = False, MANUAL_ANNOTATION_LOC = None):
   # For each subdir in the list, we need to generate a seperate csv dict
   for f, subdir in enumerate(subdir_list):
     print(f"Folder {f} of {len(subdir_list)}")
-    generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder)
+    generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder, MANUAL_ANNOTATION_LOC)
 
 def intalize_csv_dict(csv_dict):
   # FRAME NUM | IMAGE_FILENAME | KeyL_X | KeyL_Y | KeyR_X | KeyR_Y | BBOX | Pupil Center | Pupil Extents x4 | Incision |
@@ -51,7 +51,7 @@ def intalize_csv_dict(csv_dict):
   csv_dict.setdefault("incision_y", [])
 
 
-def generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder = True):
+def generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder = True, MANUAL_ANNOTATION_LOC = None):
   print(f"Generating features.csv for {subdir}")
 
   # Set up keypoint prediction model
@@ -77,6 +77,15 @@ def generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder 
     frame_list = glob.glob(os.path.join(DATA_LOC,subdir,"images", "*.jpg"))
   else:
     frame_list = glob.glob(os.path.join(DATA_LOC,subdir, "*.jpg"))
+
+
+  # Finally, determine if this folder has manually labeled trajectories
+  manual_df = None
+  if MANUAL_ANNOTATION_LOC is not None:
+    if subdir.startswith("AC1"):
+      manual_df = pd.read_csv(os.path.join(MANUAL_ANNOTATION_LOC,"pgy4.csv"))
+    elif subdir.startswith("CataractCoach1"):
+      manual_df = pd.read_csv(os.path.join(MANUAL_ANNOTATION_LOC,"expert.csv"))
 
   # Intialize the dict
   csv_dict = {}
@@ -139,7 +148,13 @@ def generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder 
     bbox = RV.get_bbox_prediction(predictions)
 
     # Get the keypoint predictions
-    keypoint_pairs = RV.get_keypoint_prediction(predictions)
+    keypoint_pairs = None
+    if manual_df is None:
+      keypoint_pairs = RV.get_keypoint_prediction(predictions)
+    else:
+      keypoint_pairs = get_keypoint_label(frame_num, manual_df)
+      if keypoint_pairs is None:
+        bbox = []
 
     # Determine which keypoints and bounding boxes are correct
     if len(bbox) == 0:
@@ -159,7 +174,20 @@ def generate_csv_dict(DATA_LOC, subdir, BEST_MODEL_CHECKPOINT, use_image_folder 
         append_bb_and_key(csv_dict, bb, key)
 
   # Write the file
-  write_dict_to_csv(csv_dict, subdir, DATA_LOC)
+  write_dict_to_csv(csv_dict, subdir, DATA_LOC, manual_df)
+
+
+def get_keypoint_label(frame_num, manual_df):
+  q = manual_df.loc[manual_df['frame'] == frame_num]
+
+  if not q.empty:
+    a=q.to_numpy()
+    X = abs(a[0][1])
+    Y = abs(a[0][2])
+    return [[X, Y, 2, X, Y, 2]]
+  else:
+    return None
+
 
 def append_bb_and_key(csv_dict, bbs, key):
   # add bbox coords
@@ -256,16 +284,20 @@ def determine_correct_keypoints(keypoint_pairs, median, extents):
   # Determine closest x_pos's index and return
   return int(final_ind_list[min_ind])
 
-def write_dict_to_csv(csv_dict, subdir, DATA_LOC):
+def write_dict_to_csv(csv_dict, subdir, DATA_LOC, manual_df = None):
   # Attempt to make the output directory
   output_folder_path = os.path.join(DATA_LOC,"OUTPUT")
+
   try:
     os.makedirs(output_folder_path)
   except FileExistsError:
     print("Output directory already exists")
 
   # generate file output location
-  filename = subdir+"_features.csv"
+  if manual_df is None:
+    filename = subdir+"_features.csv"
+  else:
+    filename = subdir+"_feature_MANUAL.csv"
   print(f"Saving {filename}")
   output_file_path = os.path.join(output_folder_path, filename)
 
