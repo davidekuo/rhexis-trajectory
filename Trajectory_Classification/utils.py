@@ -71,12 +71,16 @@ def file_label(filename):
       1 = Senior Resident
       2 = Expert
   '''
-  if filename.startswith("Medi"):
+  # if filename.startswith("Medi"):
+  #   return 0
+  # elif filename.startswith(("KY", "AC")):
+  #   return 1
+  # elif filename.startswith(("Cataract", "SQ")):
+  #   return 2
+  if filename.startswith(("Medi","KY", "AC")):
     return 0
-  elif filename.startswith(("KY", "AC")):
-    return 1
   elif filename.startswith(("Cataract", "SQ")):
-    return 2
+    return 1
   else:
     raise Exception("Unhandled filetype: " + filename)
 
