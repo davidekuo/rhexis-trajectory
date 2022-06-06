@@ -3,14 +3,14 @@
 input_file = "val_cvat_annotations.xml"
 
 
-def convert_to_two_points(line :str):
+def convert_to_two_points(line: str):
     """
     A function that reads in the line containing the point values and alters the line to contain
     two points instead of one if necessary.
 
     Parameters:
         line: String containing the line of the xml file that contains point values
-    
+
     Returns:
         String with two instances of points
         - If original string had two instances of point values, the string will not be changed
@@ -24,8 +24,8 @@ def convert_to_two_points(line :str):
     remaining_str = line[point_index:].split(" ")
 
     # Find the start and end index of the point values
-    point_value_start = remaining_str[0].find('"') +1
-    point_value_end = remaining_str[0].find('"',point_value_start+1)
+    point_value_start = remaining_str[0].find('"') + 1
+    point_value_end = remaining_str[0].find('"', point_value_start + 1)
 
     # Collect the point value containing string
     point_values = remaining_str[0][point_value_start:point_value_end]
@@ -35,7 +35,7 @@ def convert_to_two_points(line :str):
         new_line = line[0:point_index]
         new_line = new_line + 'points="'
         new_line = new_line + point_values
-        new_line = new_line + ';'
+        new_line = new_line + ";"
         new_line = new_line + point_values + '"'
         new_line = new_line + " " + remaining_str[1]
         line = new_line
@@ -43,10 +43,9 @@ def convert_to_two_points(line :str):
     return line
 
 
-
 newtext = ""
 with open(input_file) as file:
-     # Read in lines from the file
+    # Read in lines from the file
     lines = file.readlines()
 
     # For each line
@@ -55,12 +54,11 @@ with open(input_file) as file:
         # if the line contains the "point=", run the line through the function
         if "points=" in line:
             line = convert_to_two_points(line)
-        
+
         # Add the line to the new text
         newtext = newtext + line
 
 
 # Now write the newtext variable to an output file
-with open("CONVERTED"+input_file,"w") as file:
+with open("CONVERTED" + input_file, "w") as file:
     file.write(newtext)
-

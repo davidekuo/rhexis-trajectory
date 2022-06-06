@@ -2,36 +2,75 @@ import numpy as np
 
 DATA_SPLITS = [  # Pre-defined splits of the videos, to be used generally
     [[1], [5]],  # Split 0: debugging
-    [[1, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25], [5, 7, 16, 2, 12, 22]],  # train-[val,test]
-    [[1, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25], [5, 7, 16], [2, 12, 22]],  # train-val-test
+    [
+        [1, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25],
+        [5, 7, 16, 2, 12, 22],
+    ],  # train-[val,test]
+    [
+        [1, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25],
+        [5, 7, 16],
+        [2, 12, 22],
+    ],  # train-val-test
     [list(range(1, 26)), [5, 7, 16, 2, 12, 22]],  # Split 2 (all data)
-    [[1, 8, 9, 10, 14, 15, 21, 23, 24], [5, 7, 16, 2, 12, 22]],     # Split 3: "50% of data" (1729 frames, 49.3%)
-    [[10, 14, 21, 24], [5, 7, 16, 2, 12, 22]],                      # Split 4: "25% of data" (834 frames, 23.8%)
-
+    [
+        [1, 8, 9, 10, 14, 15, 21, 23, 24],
+        [5, 7, 16, 2, 12, 22],
+    ],  # Split 3: "50% of data" (1729 frames, 49.3%)
+    [
+        [10, 14, 21, 24],
+        [5, 7, 16, 2, 12, 22],
+    ],  # Split 4: "25% of data" (834 frames, 23.8%)
 ]
 
-categories_exp0 = {
-    'anatomies': [],
-    'instruments': [],
-    'others': []
-}
+categories_exp0 = {"anatomies": [], "instruments": [], "others": []}
 categories_exp1 = {
-    'anatomies': [0, 4, 5, 6],
-    'instruments': [7],
-    'others': [1, 2, 3],
-    'rare': [2]
+    "anatomies": [0, 4, 5, 6],
+    "instruments": [7],
+    "others": [1, 2, 3],
+    "rare": [2],
 }
 categories_exp2 = {
-    'anatomies': [0, 4, 5, 6],
-    'instruments': [7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-    'others': [1, 2, 3],
-    'rare': [16, 10, 9, 12, 14]  # picked with freq_thresh 0.2 and s.t rf > 1.5
+    "anatomies": [0, 4, 5, 6],
+    "instruments": [7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "others": [1, 2, 3],
+    "rare": [16, 10, 9, 12, 14],  # picked with freq_thresh 0.2 and s.t rf > 1.5
 }
 categories_exp3 = {
-    'anatomies': [0, 4, 5, 6],
-    'instruments': [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-    'others': [1, 2, 3],
-    'rare': [24, 20, 21, 22, 18, 23, 19, 16, 12, 11, 14]  # picked with freq_thresh 0.2 and s.t rf > 1.5
+    "anatomies": [0, 4, 5, 6],
+    "instruments": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+    ],
+    "others": [1, 2, 3],
+    "rare": [
+        24,
+        20,
+        21,
+        22,
+        18,
+        23,
+        19,
+        16,
+        12,
+        11,
+        14,
+    ],  # picked with freq_thresh 0.2 and s.t rf > 1.5
 }
 
 class_remapping_exp0 = {
@@ -70,58 +109,87 @@ class_remapping_exp0 = {
     32: [32],
     33: [33],
     34: [34],
-    35: [35]
+    35: [35],
 }
 classes_exp0 = {
-    0: 'Pupil',
-    1: 'Surgical Tape',
-    2: 'Hand',
-    3: 'Eye Retractors',
-    4: 'Iris',
-    5: 'Skin',
-    6: 'Cornea',
-    7: 'Hydrodissection Cannula',
-    8: 'Viscoelastic Cannula',
-    9: 'Capsulorhexis Cystotome',
-    10: 'Rycroft Cannula',
-    11: 'Bonn Forceps',
-    12: 'Primary Knife',
-    13: 'Phacoemulsifier Handpiece',
-    14: 'Lens Injector',
-    15: 'I/A Handpiece',
-    16: 'Secondary Knife',
-    17: 'Micromanipulator',
-    18: 'I/A Handpiece Handle',
-    19: 'Capsulorhexis Forceps',
-    20: 'Rycroft Cannula Handle',
-    21: 'Phacoemulsifier Handpiece Handle',
-    22: 'Capsulorhexis Cystotome Handle',
-    23: 'Secondary Knife Handle',
-    24: 'Lens Injector Handle',
-    25: 'Suture Needle',
-    26: 'Needle Holder',
-    27: 'Charleux Cannula',
-    28: 'Primary Knife Handle',
-    29: 'Vitrectomy Handpiece',
-    30: 'Mendez Ring',
-    31: 'Marker',
-    32: 'Hydrodissection Cannula Handle',
-    33: 'Troutman Forceps',
-    34: 'Cotton',
-    35: 'Iris Hooks'
+    0: "Pupil",
+    1: "Surgical Tape",
+    2: "Hand",
+    3: "Eye Retractors",
+    4: "Iris",
+    5: "Skin",
+    6: "Cornea",
+    7: "Hydrodissection Cannula",
+    8: "Viscoelastic Cannula",
+    9: "Capsulorhexis Cystotome",
+    10: "Rycroft Cannula",
+    11: "Bonn Forceps",
+    12: "Primary Knife",
+    13: "Phacoemulsifier Handpiece",
+    14: "Lens Injector",
+    15: "I/A Handpiece",
+    16: "Secondary Knife",
+    17: "Micromanipulator",
+    18: "I/A Handpiece Handle",
+    19: "Capsulorhexis Forceps",
+    20: "Rycroft Cannula Handle",
+    21: "Phacoemulsifier Handpiece Handle",
+    22: "Capsulorhexis Cystotome Handle",
+    23: "Secondary Knife Handle",
+    24: "Lens Injector Handle",
+    25: "Suture Needle",
+    26: "Needle Holder",
+    27: "Charleux Cannula",
+    28: "Primary Knife Handle",
+    29: "Vitrectomy Handpiece",
+    30: "Mendez Ring",
+    31: "Marker",
+    32: "Hydrodissection Cannula Handle",
+    33: "Troutman Forceps",
+    34: "Cotton",
+    35: "Iris Hooks",
 }
 
 class_remapping_exp1 = {
-        0: [0],
-        1: [1],
-        2: [2],
-        3: [3],
-        4: [4],
-        5: [5],
-        6: [6],
-        7: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
-            23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
-    }
+    0: [0],
+    1: [1],
+    2: [2],
+    3: [3],
+    4: [4],
+    5: [5],
+    6: [6],
+    7: [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+    ],
+}
 classes_exp1 = {
     0: "Pupil",
     1: "Surgical Tape",
@@ -235,25 +303,27 @@ CLASS_INFO = [
     [class_remapping_exp0, classes_exp0, categories_exp0],  # Original classes
     [class_remapping_exp1, classes_exp1, categories_exp1],
     [class_remapping_exp2, classes_exp2, categories_exp2],
-    [class_remapping_exp3, classes_exp3, categories_exp3]
+    [class_remapping_exp3, classes_exp3, categories_exp3],
 ]
 
-CLASS_NAMES = [[CLASS_INFO[0][1][key] for key in sorted(CLASS_INFO[0][1].keys())],
-               [CLASS_INFO[1][1][key] for key in sorted(CLASS_INFO[1][1].keys())],
-               [CLASS_INFO[2][1][key] for key in sorted(CLASS_INFO[2][1].keys())],
-               [CLASS_INFO[3][1][key] for key in sorted(CLASS_INFO[3][1].keys())]]
+CLASS_NAMES = [
+    [CLASS_INFO[0][1][key] for key in sorted(CLASS_INFO[0][1].keys())],
+    [CLASS_INFO[1][1][key] for key in sorted(CLASS_INFO[1][1].keys())],
+    [CLASS_INFO[2][1][key] for key in sorted(CLASS_INFO[2][1].keys())],
+    [CLASS_INFO[3][1][key] for key in sorted(CLASS_INFO[3][1].keys())],
+]
 
 OVERSAMPLING_PRESETS = {
-    'default': [
-        [3, 5, 7],            # Experiment 1
-        [7, 8, 15, 16],       # Experiment 2
-        [19, 20, 22, 24]      # Experiment 3
+    "default": [
+        [3, 5, 7],  # Experiment 1
+        [7, 8, 15, 16],  # Experiment 2
+        [19, 20, 22, 24],  # Experiment 3
     ],
-    'rare': [  # Same classes as 'rare' category for mIoU metric
-        [2],                                            # Experiment 1
-        [16, 10, 9, 12, 14],                            # Experiment 2
-        [24, 20, 21, 22, 18, 23, 19, 16, 12, 11, 14]    # Experiment 3
-    ]
+    "rare": [  # Same classes as 'rare' category for mIoU metric
+        [2],  # Experiment 1
+        [16, 10, 9, 12, 14],  # Experiment 2
+        [24, 20, 21, 22, 18, 23, 19, 16, 12, 11, 14],  # Experiment 3
+    ],
 }
 
 CLASS_FREQUENCIES = [
@@ -292,7 +362,7 @@ CLASS_FREQUENCIES = [
     1.13576281e-05,
     1.83788200e-04,
     1.37330396e-04,
-    2.35550169e-04
+    2.35550169e-04,
 ]
 CLASS_SUMS = [
     406775301,
@@ -330,49 +400,49 @@ CLASS_SUMS = [
     27496,
     444938,
     332467,
-    570250
+    570250,
 ]
 
 DEFAULT_VALUES = {
-    'sliding_miou_kernel': 7,  # Make sure this is odd!
-    'sliding_miou_stride': 4,
+    "sliding_miou_kernel": 7,  # Make sure this is odd!
+    "sliding_miou_stride": 4,
 }
 
 DEFAULT_CONFIG_DICT = {
-    'mode': 'training',
-    'debugging': False,
-    'log_every_n_epochs': 100,
-    'max_valid_imgs': 10,
-    'cuda': True,
-    'gpu_device': 0,
-    'seed': 0,
-    'tta': False
+    "mode": "training",
+    "debugging": False,
+    "log_every_n_epochs": 100,
+    "max_valid_imgs": 10,
+    "cuda": True,
+    "gpu_device": 0,
+    "seed": 0,
+    "tta": False,
 }
 
 DEFAULT_CONFIG_NESTED_DICT = {
-    'data': {
-        'transforms': ['pad'],
-        'transform_values': {
-            'crop_size': 0.4,
-            'crop_mode': 'random',
+    "data": {
+        "transforms": ["pad"],
+        "transform_values": {
+            "crop_size": 0.4,
+            "crop_mode": "random",
         },
-        'split': 1,
-        'batch_size': 10,
-        'num_workers': 0,
-        'preload': False,
-        'blacklist': True,
-        'use_propagated': False,
-        'propagated_video_blacklist': False,
-        'propagated_quart_blacklist': False,
-        'use_relabeled': False,
-        'weighted_random': [0, 0],
-        'weighted_random_mode': 'v1',
-        'oversampling': [0, 0],
-        'oversampling_frac': 0.2,
-        'oversampling_preset': 'default',
-        'adaptive_batching': [0, 0],
-        'adaptive_sel_size': 10,
-        'adaptive_iou_update': 1,
+        "split": 1,
+        "batch_size": 10,
+        "num_workers": 0,
+        "preload": False,
+        "blacklist": True,
+        "use_propagated": False,
+        "propagated_video_blacklist": False,
+        "propagated_quart_blacklist": False,
+        "use_relabeled": False,
+        "weighted_random": [0, 0],
+        "weighted_random_mode": "v1",
+        "oversampling": [0, 0],
+        "oversampling_frac": 0.2,
+        "oversampling_preset": "default",
+        "adaptive_batching": [0, 0],
+        "adaptive_sel_size": 10,
+        "adaptive_iou_update": 1,
         "repeat_factor": [0, 0],
         "repeat_factor_freq_thresh": 0.2,
         # loaders for two-step pseudo training
@@ -383,28 +453,28 @@ DEFAULT_CONFIG_NESTED_DICT = {
         # loads lab and ulab mixed -- default choice for pseudo training
         "mixed_default": [0, 0],
         # loads lab with RF and ulab mixed
-        "mixed_repeat_factor": [0, 0]
+        "mixed_repeat_factor": [0, 0],
     },
-    'train': {
-        'epochs': 50,
-        'lr_fct': 'exponential',
-        'lr_batchwise': False,
-        'lr_restarts': [],
-        'lr_restart_vals': 1,
-        'lr_params': None,
+    "train": {
+        "epochs": 50,
+        "lr_fct": "exponential",
+        "lr_batchwise": False,
+        "lr_restarts": [],
+        "lr_restart_vals": 1,
+        "lr_params": None,
     },
-    'loss': {
-        'temperature': 0.1,
-        'dominant_mode': 'all',
-        'label_scaling_mode': 'avg_pool',
-        'dc_weightings': {
-            'outer_freq': False,
-            'outer_entropy': False,
-            'outer_confusionmatrix': False,
-            'inner_crossentropy': False,
-            'inner_idealcrossentropy': False,
-            'neg_confusionmatrix': False,
-            'neg_negativity': False
+    "loss": {
+        "temperature": 0.1,
+        "dominant_mode": "all",
+        "label_scaling_mode": "avg_pool",
+        "dc_weightings": {
+            "outer_freq": False,
+            "outer_entropy": False,
+            "outer_confusionmatrix": False,
+            "inner_crossentropy": False,
+            "inner_idealcrossentropy": False,
+            "neg_confusionmatrix": False,
+            "neg_negativity": False,
         },
-    }
+    },
 }

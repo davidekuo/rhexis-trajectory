@@ -28,6 +28,7 @@ from detectron2.utils.visualizer import ColorMode, Visualizer
 # constants
 WINDOW_NAME = "COCO detections"
 
+
 class VisualizationDemo(object):
     def __init__(self, cfg, instance_mode=ColorMode.IMAGE, parallel=False):
         """
@@ -111,7 +112,9 @@ class VisualizationDemo(object):
                 )
             elif "instances" in predictions:
                 predictions = predictions["instances"].to(self.cpu_device)
-                vis_frame = video_visualizer.draw_instance_predictions(frame, predictions)
+                vis_frame = video_visualizer.draw_instance_predictions(
+                    frame, predictions
+                )
             elif "sem_seg" in predictions:
                 vis_frame = video_visualizer.draw_sem_seg(
                     frame, predictions["sem_seg"].argmax(dim=0).to(self.cpu_device)
@@ -144,6 +147,7 @@ class VisualizationDemo(object):
             for frame in frame_gen:
                 yield process_predictions(frame, self.predictor(frame))
 
+
 def setup_cfg(args):
     # load config from file and command-line arguments
     cfg = get_cfg()
@@ -155,7 +159,9 @@ def setup_cfg(args):
     # Set score_threshold for builtin models
     cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
-    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = args.confidence_threshold
+    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = (
+        args.confidence_threshold
+    )
     cfg.freeze()
     return cfg
 
@@ -168,7 +174,9 @@ def get_parser():
         metavar="FILE",
         help="path to config file",
     )
-    parser.add_argument("--webcam", action="store_true", help="Take inputs from webcam.")
+    parser.add_argument(
+        "--webcam", action="store_true", help="Take inputs from webcam."
+    )
     parser.add_argument("--video-input", help="Path to video file.")
     parser.add_argument(
         "--input",
@@ -249,7 +257,9 @@ if __name__ == "__main__":
                     assert os.path.isdir(args.output), args.output
                     out_filename = os.path.join(args.output, os.path.basename(path))
                 else:
-                    assert len(args.input) == 1, "Please specify a directory with args.output"
+                    assert (
+                        len(args.input) == 1
+                    ), "Please specify a directory with args.output"
                     out_filename = args.output
                 visualized_output.save(out_filename)
             else:
@@ -276,7 +286,9 @@ if __name__ == "__main__":
         num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
         basename = os.path.basename(args.video_input)
         codec, file_ext = (
-            ("x264", ".mkv") if test_opencv_video_format("x264", ".mkv") else ("mp4v", ".mp4")
+            ("x264", ".mkv")
+            if test_opencv_video_format("x264", ".mkv")
+            else ("mp4v", ".mp4")
         )
         if codec == ".mp4v":
             warnings.warn("x264 codec not available, switching to mp4v")

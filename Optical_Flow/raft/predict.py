@@ -1,5 +1,6 @@
 import sys
-sys.path.append('core')
+
+sys.path.append("core")
 
 import os
 import cv2
@@ -16,7 +17,8 @@ from utils import flow_viz
 from utils.utils import InputPadder
 
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def writeFlowFile(filename, uv):
     """
@@ -29,7 +31,7 @@ def writeFlowFile(filename, uv):
         sys.exit("writeFlowFile: flow must have two bands!")
     H = np.array(uv.shape[0], dtype=np.int32)
     W = np.array(uv.shape[1], dtype=np.int32)
-    with open(filename, 'wb') as f:
+    with open(filename, "wb") as f:
         f.write(TAG_STRING.tobytes())
         f.write(W.tobytes())
         f.write(H.tobytes())
@@ -54,8 +56,9 @@ def predict(args):
     model.eval()
 
     with torch.no_grad():
-        images = glob.glob(os.path.join(args.path, '*.png')) + \
-                 glob.glob(os.path.join(args.path, '*.jpg'))
+        images = glob.glob(os.path.join(args.path, "*.png")) + glob.glob(
+            os.path.join(args.path, "*.jpg")
+        )
         # print("args.path: ", args.path)
         # print("images: ", images)
 
@@ -74,9 +77,9 @@ def predict(args):
 
         for index, imfile1 in enumerate(images_):
             if args.reverse:
-                image1 = load_image(images[index+gap])
+                image1 = load_image(images[index + gap])
                 image2 = load_image(imfile1)
-                svfile = images[index+gap]
+                svfile = images[index + gap]
             else:
                 image1 = load_image(imfile1)
                 image2 = load_image(images[index + gap])
@@ -94,32 +97,38 @@ def predict(args):
             # print("rawflopath: ", rawflopath)
 
             flo = flow_up[0].permute(1, 2, 0).cpu().numpy()
-            print("flo: ", type(flo), flo.shape, '\n', flo)
-            
+            print("flo: ", type(flo), flo.shape, "\n", flo)
+
             # save raw flow
             # print("raw flow filename: ", rawflopath[:-4]+'.flo')
-            writeFlowFile(rawflopath[:-4]+'.flo', flo)
+            writeFlowFile(rawflopath[:-4] + ".flo", flo)
 
             # save image.
             flo = flow_viz.flow_to_image(flo)
             # print("flow_vis: ", type(flo), flo.shape, '\n', flo)
             # print("flow_vis filename: ", flopath[:-4]+'.png')
-            cv2.imwrite(flopath[:-4]+'.png', flo[:, :, [2, 1, 0]])
+            cv2.imwrite(flopath[:-4] + ".png", flo[:, :, [2, 1, 0]])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument('--resolution', nargs='+', type=int)
-    parser.add_argument('--model', help="restore checkpoint")
-    parser.add_argument('--path', help="dataset for prediction")
-    parser.add_argument('--gap', type=int, help="gap between frames")
-    parser.add_argument('--outroot', help="path for output flow as image")
-    parser.add_argument('--reverse', type=int, help="video forward or backward")
-    parser.add_argument('--raw_outroot', help="path for output flow as xy displacement")
+    parser.add_argument("--model", help="restore checkpoint")
+    parser.add_argument("--path", help="dataset for prediction")
+    parser.add_argument("--gap", type=int, help="gap between frames")
+    parser.add_argument("--outroot", help="path for output flow as image")
+    parser.add_argument("--reverse", type=int, help="video forward or backward")
+    parser.add_argument("--raw_outroot", help="path for output flow as xy displacement")
 
-    parser.add_argument('--small', action='store_true', help='use small model')
-    parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
-    parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
+    parser.add_argument("--small", action="store_true", help="use small model")
+    parser.add_argument(
+        "--mixed_precision", action="store_true", help="use mixed precision"
+    )
+    parser.add_argument(
+        "--alternate_corr",
+        action="store_true",
+        help="use efficent correlation implementation",
+    )
     args = parser.parse_args()
 
     predict(args)

@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 def json2dataframes(file_path: str):
     """
     This function takes in the path to metrics.json from Detectron2 training
@@ -21,7 +22,7 @@ def json2dataframes(file_path: str):
     AP, L = [], []
     for line in lines:
         json_dict = json.loads(line)
-        if 'bbox/AP' in json_dict:
+        if "bbox/AP" in json_dict:
             AP.append(json_dict)
         else:
             L.append(json_dict)
@@ -48,33 +49,33 @@ def plot_kp_bbox_AP_loss(ap_loss_labels):
 
     # Plot keypoints/AP
     for AP, loss, label in ap_loss_labels:
-        plt.plot(AP['iteration'], AP['keypoints/AP'], label=f"{label}")
+        plt.plot(AP["iteration"], AP["keypoints/AP"], label=f"{label}")
     plt.title("Validation Keypoints/Average Precision")
     plt.xlabel("Iterations")
     plt.ylabel("AP")
     plt.legend()
     # plt.show()
-    plt.savefig('kp_AP.png', bbox_inches='tight')
+    plt.savefig("kp_AP.png", bbox_inches="tight")
     plt.clf()
 
     # Plot bbox/AP
     for AP, loss, label in ap_loss_labels:
-        plt.plot(AP['iteration'], AP['bbox/AP'], label=f"{label}")
+        plt.plot(AP["iteration"], AP["bbox/AP"], label=f"{label}")
     plt.title("Validation Bbox/Average Precision")
     plt.xlabel("Iterations")
     plt.ylabel("AP")
     plt.legend()
     # plt.show()
-    plt.savefig('bbox_AP.png', bbox_inches='tight')
+    plt.savefig("bbox_AP.png", bbox_inches="tight")
     plt.clf()
-#
+    #
     # Plot total loss
     for AP, loss, label in ap_loss_labels:
-        plt.plot(loss['iteration'], loss['total_loss'], label=f"{label}")
+        plt.plot(loss["iteration"], loss["total_loss"], label=f"{label}")
     plt.title("Total Training Loss")
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
     plt.legend()
     # plt.show()
-    plt.savefig('loss.png', bbox_inches='tight')
+    plt.savefig("loss.png", bbox_inches="tight")
     plt.clf()
