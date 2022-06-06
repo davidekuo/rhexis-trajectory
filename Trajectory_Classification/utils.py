@@ -80,7 +80,7 @@ def file_label(filename):
   else:
     raise Exception("Unhandled filetype: " + filename)
 
-def featurize_pull(pull, num_bins=20):
+def featurize_pull(pull, num_bins=20, normalize=False):
   """
   Performs all featurizations for an individual pull
 
@@ -95,10 +95,14 @@ def featurize_pull(pull, num_bins=20):
 
   length = pull_to_length(pull)
   mean_velocity, mean_accel = pull_to_velocities_and_accelerations(pull)
+  pupil_stds = pull_to_pupil_stddev(pull)
 
-  features = np.append(hist, np.array([length, mean_velocity, mean_accel]))
+  features = np.append(hist, np.array([length, mean_velocity, mean_accel, *pupil_stds]))
 
   return features
+
+def pull_to_pupil_stddev(pull):
+  return np.std(pull["pupil_center_x"]), np.std(pull["pupil_center_y"])
 
 def pull_to_length(pull):
   """
