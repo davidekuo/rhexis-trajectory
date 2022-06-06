@@ -210,11 +210,15 @@ def make_custom_pipeline(clf, include_pca=False, num_components=0):
   else:
     return make_pipeline(scaler, clf)
 
-def run_pipeline_test():
-  X, y = np.stack([featurize_pull(pull, num_bins) for pull in path_dfs], axis=0), np.array(labels)
-  X_train, X_test, y_train, y_test = stratified_split_data(X, y)
+def get_data_for_fixed_bins(n_bins):
+  names, path_dfs, labels, sizes = load_all_pulls(DATA_LOC)
+  X, y = np.stack([featurize_pull(pull, n_bins) for pull in path_dfs], axis=0), np.array(labels)
+  return stratified_split_data(X, y)
+
+def grid_search(clf, param_grid, X_train, y_train):
   search = GridSearchCV(make_custom_pipeline(clf, include_pca=True), param_grid, cv=5)
   search.fit(X_train, y_train)
+  return search
 
 def grid_search_with_bins(clf, param_grid, bin_range):
   names, path_dfs, labels, sizes = load_all_pulls(DATA_LOC)
