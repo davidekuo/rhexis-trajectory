@@ -3,7 +3,7 @@
 ![GitHub](https://img.shields.io/badge/CS231n-Final%20Project-red) ![GitHub](https://img.shields.io/badge/CS229-Final%20Project-red)
 
 ## 💻 Contributors 
-David Kuo MD, Ben Viggiano, Riya Sinha, Ben Ehlert
+David Kuo, Ben Viggiano, Riya Sinha, Ben Ehlert
 
 ## ⚡️ Gettting Started 
 1) Clone the repository to your Google Drive.<br>  
@@ -31,7 +31,7 @@ Our project is composed of two parts:
 
 
 
-An illistration of our full project is shown below:
+An illustration of our full project is shown below:
 
 ![alt text](https://github.com/davidekuo/rhexis-trajectory/blob/main/ModelOverview.png)
 
