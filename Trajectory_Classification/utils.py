@@ -37,12 +37,18 @@ def apply_moving_average(path_df):
             path_df[column] = path_df[column].rolling(5).mean()
 
 
-def load_all_pulls(DATA_LOC: str):
+def load_all_pulls(DATA_LOC: str, get_manual = False):
     output_folder = os.path.join(DATA_LOC, "OUTPUT")
+
+    # Normally, we want to return all .csv's
+    search_substring = ".csv"
+
+    if get_manual:
+      search_substring = "MANUAL.csv"
 
     # Read in data
     files = os.listdir(output_folder)
-    csvs = [csv for csv in files if csv.endswith(".csv")]
+    csvs = [csv for csv in files if csv.endswith(search_substring)]
     path_dfs = [load_pull(os.path.join(output_folder, csv)) for csv in csvs]
     # print(path_dfs)
     labels = [file_label(csv) for csv in csvs]
@@ -80,6 +86,8 @@ def load_pull(filename, header=None):
 
 
 def get_video_resolution(video_resolution_df, filename):
+    if "MANUAL" in filename:
+      filename = filename.replace("_MANUAL.csv",".csv")
     col = video_resolution_df[filename]
     return (col[2], col[1])
 
@@ -220,12 +228,16 @@ def make_custom_pipeline(clf, include_pca=False, num_components=0):
         return make_pipeline(scaler, clf)
 
 
-def get_data_for_fixed_bins(n_bins):
-    names, path_dfs, labels, sizes = load_all_pulls(DATA_LOC)
+def get_data_for_fixed_bins(n_bins, split_data = True, get_manual = False):
+    names, path_dfs, labels, sizes = load_all_pulls(DATA_LOC, get_manual)
     X, y = np.stack(
         [featurize_pull(pull, n_bins) for pull in path_dfs], axis=0
     ), np.array(labels)
-    return stratified_split_data(X, y)
+
+    if split_data:
+      return stratified_split_data(X, y)
+    else:
+      return (X,y)
 
 
 def grid_search(clf, param_grid, X_train, y_train):
