@@ -14,6 +14,11 @@ David Kuo, Ben Viggiano, Riya Sinha, Ben Ehlert
 
 ![Alt Text](https://github.com/davidekuo/rhexis-trajectory/blob/main/rhexis_trajectory_output.gif)
 
+## Final Reports
+[Final Report for CS 229](https://drive.google.com/file/d/1Drgpbfxibu4yTkbTILNjkmCBDbK-F8x_/view?usp=sharing)
+
+[Final Report for CS 231n](https://drive.google.com/file/d/1yhS8195Bz6G6p575p9eMovumP4MDqkdH/view?usp=sharing)
+
 ## Summary
 The quality and volume of surgical training can vary widely between different training institutions, and can be significantly affected by unexpected circumstances such as the recent (and still ongoing) COVID-19 pandemic that saw operating rooms across the world close except for emergent cases. As such, there is a great need for trainees to maximize the educational value of every surgical case they perform. In recent years, internet platforms such as YouTube have enabled surgeons to share cases and discuss new techniques, and allowed trainees to receive valuable feedback from more experienced surgeons on their own cases; however, these initiatives are limited by the availability of experienced surgeons with the time and willingness to review trainee-submitted cases outside of working hours and provide feedback. To address this limitation, we propose a machine learning platform that provides automated feedback for trainee-submitted surgical videos, specifically cataract surgery. 
 
