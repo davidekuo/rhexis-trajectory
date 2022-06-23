@@ -2,8 +2,16 @@ import os
 import argparse
 import cv2
 
-
 def main():
+    """
+    Converts an MP4 file to a series of JPEG images. The new images
+    are named utilizing the original name of the MP4 file and their
+    corresponding frame number.
+
+    Args:
+        -input: path to the MP4 file to convert to JPEGs
+        -output: path to the output directory to save the JPEGs to
+    """
     parser = argparse.ArgumentParser(
         description="Extracts frames of filename.mp4 into output directory with JPEGs named filename_frame#.jpg. Default output directory is [input file directory]/[filename]"
     )

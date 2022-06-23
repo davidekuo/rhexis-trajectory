@@ -3,6 +3,17 @@ import json
 
 
 def main():
+    """
+    Merges multiple COCO format JSON files into one COCO format
+    json file by concatenating all the annotations in the input JSON files.
+    We used this function to concatenate the annotations of the keypoints and
+    bounding boxes of the COCO format JSON files of the training and validation
+    sets.
+
+    Args:
+        -keypoint_path: path to the JSON file containing the keypoint annotations
+        -bounding_box_path: path to the JSON file containing the bounding box annotations
+    """
     parser = argparse.ArgumentParser(
         description="Merges keypoint and bounding box annotation JSONs."
     )

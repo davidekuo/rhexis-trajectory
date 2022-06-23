@@ -8,6 +8,20 @@ random.seed(0)
 
 
 def main():
+    """
+    Generates training data by selecting X random jpgs from Y 
+    random subdirectories of current directory and copies them to output 
+    directory. It expects that all subdirectories of current directory contain 
+    jpgs corresponding to frames of a cataract surgery video.
+
+    Args:
+        -nvideos: number of random directories (i.e. videos) to select.
+         default -1 includes all directories/videos
+        -nframes: number of random frames to select from each video.
+         default is 20
+        -outdir: output directory to copy selected frames to.
+         default is ./training_data
+    """
     parser = argparse.ArgumentParser(
         description="Generates training data by selecting X random jpgs from Y random subdirectories of current directory and copies them to output directory. Expects that all subdirectories of current directory contain jpgs corresponding to frames of a cataract surgery video."
     )
