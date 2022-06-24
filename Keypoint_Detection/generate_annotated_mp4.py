@@ -30,6 +30,9 @@ WINDOW_NAME = "COCO detections"
 
 
 class VisualizationDemo(object):
+    """
+    Class for creating a video from a list of images with detections.
+    """
     def __init__(self, cfg, instance_mode=ColorMode.IMAGE, parallel=False):
         """
         Args:
@@ -83,6 +86,16 @@ class VisualizationDemo(object):
         return predictions, vis_output
 
     def _frame_from_video(self, video):
+        """
+        Generates frames from a video.
+        
+        Args:
+            video (cv2.VideoCapture): a :class:`VideoCapture` object, whose source can be
+                either a webcam or a video file.
+                
+        Yields:
+            ndarray: BGR visualizations of each video frame.
+        """
         while video.isOpened():
             success, frame = video.read()
             if success:
@@ -149,6 +162,16 @@ class VisualizationDemo(object):
 
 
 def setup_cfg(args):
+    """
+    Sets up a configuration that loads a model from a file and then
+    uses that model to generate predictions on a video.
+    
+    Args:
+        args (argparse.Namespace): the command line arguments.
+        
+    Returns:
+        CfgNode: the configuration.
+    """
     # load config from file and command-line arguments
     cfg = get_cfg()
     # To use demo for Panoptic-DeepLab, please uncomment the following two lines.
@@ -167,6 +190,12 @@ def setup_cfg(args):
 
 
 def get_parser():
+    """
+    Creates a parser for command-line arguments.
+
+    Returns:
+        argparse.ArgumentParser: the parser.
+    """
     parser = argparse.ArgumentParser(description="Detectron2 demo for builtin configs")
     parser.add_argument(
         "--config-file",
@@ -206,6 +235,15 @@ def get_parser():
 
 
 def test_opencv_video_format(codec, file_ext):
+    """
+    Checks if OpenCV can decode a video with the given codec.
+    
+    Args:
+        codec (str): the video codec.
+        file_ext (str): the file extension.
+        
+    Returns:
+        bool: True if OpenCV can decode a video with the given codec."""
     with tempfile.TemporaryDirectory(prefix="video_format_test") as dir:
         filename = os.path.join(dir, "test_file" + file_ext)
         writer = cv2.VideoWriter(

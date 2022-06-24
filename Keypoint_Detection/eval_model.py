@@ -9,18 +9,23 @@ import os
 import numpy as np
 import warnings
 
-"""
-from eval_model import RhexisVisualizer
-RhexisVis = RhexisVisualizer(bmc, cfg, object_detection_threshold = 0.98)
-
-image_set = RhexisVis.randomly_sample_images_from_set("test",2)
-RhexisVis.detectron2_visualizer(sampled_list = image_set)
-
-RhexisVis.compare_labels(sampled_list = image_set)
-"""
-
 
 def convert_bbox(bbox):
+    """
+    Converts a bounding box from the output of the model to the standard COCO
+    format for bounding boxes. Note: Assumes 0 indexing from top left corner for
+    both x and y.
+    
+    Parameters:
+        bbox(list): A list of four floats representing the bounding box
+            in the format that the model outputs.
+            [<left top x>, <left top y>, <right bottom x>, <right bottom y>]
+            
+    Returns:
+        bbox(list): A list of four floats representing the bounding box in the
+            standard COCO format.
+            [<left top x>, <left top y>, <width>, <height>]
+    """
     x0 = bbox[0]
     y0 = bbox[1]
     width = bbox[2] - bbox[0]
@@ -28,78 +33,72 @@ def convert_bbox(bbox):
     return [x0, y0, width, height]
 
 
-def compare_bboxes(im, gt_bbox, pr_bbox):
-    im = draw_bbox(im, gt_bbox, True)
-    im = draw_bbox(im, pr_bbox, False)
-    return im
+class RhexisPredictor:
+    """
+    A class for predicting the bounding boxes and keypoints using the loaded
+    model.
 
-
-def draw_bbox(im, bbox, ground=False):
-    # Start coordinate, here (5, 5)
-    # represents the top left corner of rectangle
-    start_point = (round(bbox[0]), round(bbox[1]))
-
-    # Ending coordinate, here (220, 220)
-    # represents the bottom right corner of rectangle
-    end_point = (round(bbox[0] + bbox[2]), round(bbox[1] + bbox[3]))
-
-    # Blue color in BGR
-    color = (0, 0, 0)
-    if ground:
-        color = (0, 255, 0)
-    else:
-        color = (255, 0, 0)
-
-    # Line thickness of 2 px
-    thickness = 1
-
-    # Using cv2.rectangle() method
-    # Draw a rectangle with blue line borders of thickness of 2 px
-    im2 = cv2.rectangle(im, start_point, end_point, color, thickness)
-    im = cv2.addWeighted(im, 0.95, im2, 0.05, 1.0)
-    return im
-
-
-def compare_keypoints(im, gt_keypoints, pr_keypoints):
-    im = draw_keypoints(im, gt_keypoints, True)
-    im = draw_keypoints(im, pr_keypoints, False)
-    return im
-
-
-def draw_keypoints(im, keypoints, ground=False):
-    assert len(keypoints) % 3 == 0
-
-    thickness = max(round(im.shape[0] / 300), 1)
-
-    for i in range(int(len(keypoints) / 3)):
-        xpos = round(keypoints[i * 3])
-        ypos = round(keypoints[i * 3 + 1])
-        color = (0, 0, 0)
-        if ground:
-            color = (0, 255, 0)
-            print(f"Ground Truth Keypoint {i}: X {xpos}, Y {ypos}")
-        else:
-            color = (255, 0, 0)
-            print(f"Predicted Keypoint {i}: X {xpos}, Y {ypos}")
-        im = cv2.circle(im, (xpos, ypos), 10, color, thickness)
-        im = cv2.circle(im, (xpos, ypos), 2, color, thickness)
-    return im
-
-
-class RhexisVisualizer:
+    Attributes:
+        predictor(torch.nn.Module): The loaded model.
+    """
     def __init__(self, model_weights_path, cfg, object_detection_threshold=0.98):
+        """
+        Initializes the RhexisPredictor class.
+        
+        Parameters:
+            model_weights_path(str): The path to the model weights.
+
+            cfg(dict): The loaded configuration file
+
+            object_detection_threshold(float): The threshold for object
+                detection.
+                Default: 0.98
+                
+            Raises:
+                FileNotFoundError: If the model weights file is not found.
+        """
         cfg.MODEL_WEIGHTS = model_weights_path
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = object_detection_threshold
         self.predictor = DefaultPredictor(cfg)
 
     def randomly_sample_images_from_set(self, set_to_sample="test", num_images=5):
+        """
+        Samples <num_images> images from the specified set.
+
+        Parameters:
+            set_to_sample(str): The set to sample images from.
+                Options: "train", "val", "test"
+                Default: "test"
+            
+            num_images(int): The number of images to sample.
+                Default: 5
+        
+        Returns:
+            images(list): A list of dictionaries containing the images
+        """
         dataset_dicts = DatasetCatalog.get(set_to_sample)
         return random.sample(dataset_dicts, num_images)
 
     def detectron2_visualizer(
         self, set_to_sample="test", num_images=5, sampled_list=None
     ):
+        """
+        Visualizes the predictions for the specified set by displaying the images
+        with overlayed bounding boxes and keypoints.
 
+        Parameters:
+            set_to_sample(str): The set to sample images from.
+                Options: "train", "val", "test"
+                Default: "test"
+        
+            num_images(int): The number of images to sample.
+                Default: 5
+
+            sampled_list(list): A list of dictionaries containing the images
+                to visualize. If this is None, then the images will be sampled
+                from the specified set.
+                Default: None
+        """
         list_of_file_dicts = sampled_list
         if sampled_list is None:
             print(f"Randomly sampling {num_images} images from {set_to_sample} set")
@@ -122,11 +121,39 @@ class RhexisVisualizer:
             cv2_imshow(out.get_image()[:, :, ::-1])
 
     def predict_keypoint_features(self, im):
+        """
+        Predicts the keypoint features for the image.
+        
+        Parameters:
+            im(np.ndarray): The image to predict the keypoint features for.
+            
+        Returns:
+            keypoints(list): A list of floats representing the keypoints in the
+                COCO format for keypoints.
+                [<x1>, <y1>, 2, <x2>, <y2>, 2, ...]
+        """
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             return self.predictor(im)
 
     def compare_labels(self, set_to_sample="test", num_images=5, sampled_list=None):
+        """
+        Compares the ground truth and predicted labels for a set of sampled images,
+        or explicitly referenced images.
+        
+        Parameters:
+            set_to_sample(str): The set to sample images from.
+                Options: "train", "val", "test"
+                Default: "test"
+
+            num_images(int): The number of images to sample.
+                Default: 5
+            
+            sampled_list(list): A list of dictionaries containing the images
+                to visualize. If this is None, then the images will be sampled
+                from the specified set.
+                Default: None
+        """
 
         list_of_file_dicts = sampled_list
         if sampled_list is None:
@@ -168,6 +195,20 @@ class RhexisVisualizer:
             cv2_imshow(im)
 
     def get_bbox_prediction(self, outputs):
+        """
+        Gets the bounding box prediction from the output of the keypoint
+        dection model.
+
+        Parameters:
+            outputs(dict): The output of the keypoint detection model.
+                See the documentation for the keypoint detection model at
+                https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
+
+        Returns:
+            bbox_prediction(list): A list of floats representing the bounding
+                boxes in the COCO format for bounding boxes.
+                [<x1>, <y1>, 2, <x2>, <y2>, 2, ...]
+        """
         try:
             # remove this print when done with dev
             # print_dict(outputs)
@@ -180,6 +221,20 @@ class RhexisVisualizer:
         return bbox_list
 
     def get_keypoint_prediction(self, outputs):
+        """
+        Gets the keypoint prediction from the output of the keypoint
+        dection model.
+
+        Parameters:
+            outputs(dict): The output of the keypoint detection model.
+                See the documentation for the keypoint detection model at
+                https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
+
+        Returns:
+            keypoint_prediction(list): A list of floats representing the keypoints
+                in the following format for keypoints.
+                [<x1>, <y1>, 2, <x2>, <y2>, 2, ...]
+        """
         try:
             pr_keypoints_list = outputs["instances"].pred_keypoints.cpu().numpy()
             keypoint_list = []
@@ -190,8 +245,4 @@ class RhexisVisualizer:
         return keypoint_list
 
 
-def print_dict(a_dict):
-    for item in a_dict.items():
-        print(item[0])
-        print(item[1])
-        print()
+
