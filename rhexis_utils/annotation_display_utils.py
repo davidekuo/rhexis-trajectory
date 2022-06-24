@@ -11,7 +11,7 @@ import cv2
 import time
 import math
 import json
-import resize_utils as ru
+import rhexis_utils.edit_dataset_utils as edu
 from google.colab.patches import cv2_imshow
 
 def display_bboxes_comparisons(im, gt_bbox, pr_bbox):
@@ -161,7 +161,7 @@ def display_annotations(test_subdir, test_index, DATA_LOC):
     """
 
     # Read in json dict
-    json_dict = ru.read_in_json(ru.find_json_file(DATA_LOC, test_subdir))
+    json_dict = edu.read_in_json(edu.find_json_file(DATA_LOC, test_subdir))
 
     # Get image dict
     image_dict = json_dict["images"][test_index]
@@ -179,7 +179,7 @@ def display_annotations(test_subdir, test_index, DATA_LOC):
 
     im = cv2.imread(image_path)
     # Find search annotation
-    search_annotate_dict = ru.create_search_annotate_dict(json_dict["annotations"])
+    search_annotate_dict = edu.create_search_annotate_dict(json_dict["annotations"])
 
     # Use search dict to find annotations for this image
     annotate_dict = None
@@ -202,7 +202,7 @@ def display_annotations(test_subdir, test_index, DATA_LOC):
 
         if bbox is not None:
             print(f"bbox: {bbox}")
-            im = draw_bbox(im, bbox)
+            im = draw_bbox_on_image(im, bbox)
 
         # Now draw keypoints (if they exist)
         keypoints = None
@@ -213,7 +213,7 @@ def display_annotations(test_subdir, test_index, DATA_LOC):
 
         if keypoints is not None:
             print(f"keypoints: {keypoints}")
-            im = draw_keypoints(im, keypoints)
+            im = draw_keypoints_on_image(im, keypoints)
 
     print(f"Image size:{im.shape}")
     cv2_imshow(im)
@@ -228,7 +228,7 @@ def display_annotations_data_edit(
 
     # Read in json dict
     if use_original_json:
-        json_dict = ru.read_in_json(
+        json_dict = edu.read_in_json(
             os.path.join(
                 DATA_LOC,
                 "original_jsons",
@@ -236,7 +236,7 @@ def display_annotations_data_edit(
             )
         )
     else:
-        json_dict = ru.read_in_json(ru.find_json_file(DATA_LOC, test_subdir))
+        json_dict = edu.read_in_json(edu.find_json_file(DATA_LOC, test_subdir))
 
     # Get image dict
     image_dict = json_dict["images"][test_index]
@@ -254,7 +254,7 @@ def display_annotations_data_edit(
 
     im = cv2.imread(image_path)
     # Find search annotation
-    search_annotate_dict = ru.create_search_annotate_dict(json_dict["annotations"])
+    search_annotate_dict = edu.create_search_annotate_dict(json_dict["annotations"])
 
     # Use search dict to find annotations for this image
     annotate_dict = None
@@ -277,7 +277,7 @@ def display_annotations_data_edit(
 
         if bbox is not None:
             print(f"bbox: {bbox}")
-            im = draw_bbox(im, bbox)
+            im = draw_bbox_on_image(im, bbox)
 
         # Now draw keypoints (if they exist)
         keypoints = None
@@ -288,7 +288,7 @@ def display_annotations_data_edit(
 
         if keypoints is not None:
             print(f"keypoints: {keypoints}")
-            im = draw_keypoints(im, keypoints)
+            im = draw_keypoints_on_image(im, keypoints)
 
     print(f"Image size:{im.shape}")
     cv2_imshow(im)

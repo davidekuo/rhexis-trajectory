@@ -5,7 +5,6 @@ import glob
 import os
 import cv2
 import sys
-from utils import *
 from skimage import io
 from skimage import color
 from skimage import segmentation
