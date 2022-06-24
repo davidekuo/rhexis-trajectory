@@ -19,8 +19,45 @@ import math
 
 
 def semantic_segmentation(
-    DATA_LOC, subdir_names, task=2, test_mode=True, use_image_subdir=True
+    DATA_LOC : str, 
+    subdir_names : list, 
+    task : int = 2, 
+    test_mode :bool = True, 
+    use_image_subdir : bool =True
 ):
+    """
+    Runs the semantic segmentation model on the subdirectories listed in 
+    the subdir_names list from the dataset located at DATA_LOC. Creates new
+    folders inside of all the subdirectories containing the segmented label
+    images.
+
+    Parameters:
+        DATA_LOC: str
+            The location of the dataset.
+
+        subdir_names: list
+            A list of subdirectories to run the model on.
+        
+        task: int
+            The task to run the model on.
+            https://github.com/RViMLab/MICCAI2021_Cataract_semantic_segmentation
+        
+        test_mode: bool
+            Whether or not to run the model in test mode. If test mode is
+            active, model will only run through two batches.
+
+        use_image_subdir: bool
+            Whether or not to use the image intermediate subdirectory in path
+            names. 
+
+            If use_image_subdir is True: The path to an image file should look
+            like this:
+            <DATA_LOC>/<subdir_name>/images/<image_name>.<extension>
+
+            If use_image_subdir is False: The path to an image file should look
+            like this:
+            <DATA_LOC>/<subdir_name>/<image_name>.<extension>
+    """
     # Set up model
     model = configure_segmentation_model(task)
 
@@ -33,9 +70,32 @@ def semantic_segmentation(
     )
 
 
-def make_label_directories(DATA_LOC, subdir_names=[]):
+def make_label_directories(DATA_LOC, subdir_names=None):
+    """
+    Attempts to make the directories for labels inside of each of the sub
+    directories. If the directories already exist, it will not make them again.
 
-    if not subdir_names:
+    Parameters:
+        DATA_LOC: str
+            The location of the dataset.
+
+        subdir_names: list
+            A list of subdirectories to make the label directories in.
+
+        use_image_subdir: bool
+            Whether or not to use the image intermediate subdirectory in path
+            names.
+
+            If use_image_subdir is True: The path to an image file should look
+            like this:
+            <DATA_LOC>/<subdir_name>/images/<image_name>.<extension>
+
+            If use_image_subdir is False: The path to an image file should look
+            like this:
+            <DATA_LOC>/<subdir_name>/<image_name>.<extension>
+    """
+
+    if subdir_names is None:
         subdir_names = ["train_set", "val_set", "test_set"]
 
     # Create these folders
@@ -44,16 +104,49 @@ def make_label_directories(DATA_LOC, subdir_names=[]):
 
         try:
             os.mkdir(folder_to_create)
-        except OSError as error:
+        except OSError:
             pass
-            # print(f"{name} label folder already exists | overwriting labels")
 
 
 def create_label_images(
-    labels, img_data, DATA_LOC, subdir_names=[], use_image_subdir=True
+    labels, img_data, DATA_LOC, subdir_names=None, use_image_subdir=True
 ):
     """
-    Creates images of all of our labels
+    Creates label image files for all of the labels in the dataset.
+
+    Parameters:
+        labels: numpy array
+            A numpy array of shape (NxCxHxW) containing the labels for the
+            images.
+
+        img_data: tuple
+            A tuple of length 2 containing the image data. The first element is
+            file_list which contains the name of each file in the dataset. The
+            second element is size_list which contains the size of each image
+            in the dataset.
+
+        DATA_LOC: str
+            The location of the dataset.
+        
+        subdir_names: list
+            A list of subdirectories to make the label directories in.
+        
+        use_image_subdir: bool
+            Whether or not to use the image intermediate subdirectory in path
+            names.
+
+            If use_image_subdir is True: The path to an image file should look
+            like this:
+            <DATA_LOC>/<subdir_name>/images/<image_name>.<extension>
+
+            If use_image_subdir is False: The path to an image file should look
+            like this:
+            <DATA_LOC>/<subdir_name>/<image_name>.<extension>
+
+    Returns:
+        success_count: int
+            The number of label image files that were successfully created.
+
     """
     # Keep track of how many images saved successfully and which ones did not
     success_count = 0
@@ -213,14 +306,14 @@ def create_labels(
         print(f"Successfully saved {success_count} out of {x.shape[0]} labels")
 
 
-def read_in_images(DATA_LOC: str, subdir_names=[], use_image_subdir=True):
+def read_in_images(DATA_LOC: str, subdir_names=None, use_image_subdir=True):
     """
     Reads in images from the dataset location and returns a numpy array containing
     the images of shape (NxCxHxW), where N is the number of images, C is the
     number of channels, and H + W are sizes of spatial dimensions.
     """
 
-    if not subdir_names:
+    if subdir_names is None:
         subdir_names = ["train_set", "val_set", "test_set"]
 
     # Glob the data together

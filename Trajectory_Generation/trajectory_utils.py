@@ -1,6 +1,8 @@
 """
 Functions that generate trajectories
 """
+# TODO: Figure out where to place this function and delete file
+
 import os
 import sys
 import glob
