@@ -1,5 +1,5 @@
 """
-Function related to resizing images and corresponding annotations.
+A module of utility functions datasets of the Rhexis Project.
 """
 
 # Semantic Segmentation Utils
