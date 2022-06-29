@@ -8,6 +8,7 @@ import random
 import os
 import numpy as np
 import warnings
+import rhexis_utils.data_processing_utils as dpu
 
 
 def convert_bbox(bbox):
@@ -181,16 +182,16 @@ class RhexisPredictor:
                 outputs = self.predictor(im)
 
             pr_bbox = self.get_bbox_prediction(outputs)[0]
-
+            
             pr_keypoints = self.get_keypoint_prediction(outputs)[0]
 
             print("Ground Truth is green")
             print("Predictions are blue")
             if gt_bbox is not None and pr_bbox is not None:
-                im = compare_bboxes(im, gt_bbox, pr_bbox)
+                im = dpu.display_bboxes_comparisons(im, gt_bbox, pr_bbox)
 
             if gt_keypoint is not None and pr_keypoints is not None:
-                im = compare_keypoints(im, gt_keypoint, pr_keypoints)
+                im = dpu.display_keypoint_comparisons(im, gt_keypoint, pr_keypoints)
 
             cv2_imshow(im)
 

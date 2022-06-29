@@ -2,7 +2,6 @@
 A module of utility functions for the Rhexis project Keypoint Detection
 functionality.
 """
-from typing_extensions import assert_type
 import os
 import glob
 import json
@@ -179,10 +178,6 @@ def get_dataset_location(dataset_name: str, DATASET_LOC: str):
 
     """
 
-    # Ensure the input is the correct type
-    assert_type(dataset_name, str)
-    assert_type(DATASET_LOC, str)
-
     # Ensure this input is one of the valid options
     msg = f"'{dataset_name}' is an invalid option: Please use 'train', 'val', or 'test'"
     assert (
@@ -215,7 +210,7 @@ def load_datasets_pipeline(DATASET_LOC: str):
 
     for dataset in ["train", "test", "val"]:
         # Collect json and image location
-        dataset_json_loc, dataset_image_loc = get_json_and_images(dataset, DATASET_LOC)
+        dataset_json_loc, dataset_image_loc = get_dataset_location(dataset, DATASET_LOC)
         register_coco_instances(dataset, {}, dataset_json_loc, dataset_image_loc)
 
         # add keypoint_names metadata needed for training
@@ -259,7 +254,7 @@ def best_model_checkpoint(output_dir: str) -> str:
       max_kp_AP_checpoint: string of filename of best-performing checkpoint
     """
 
-    with open(output_dir + "/metrics.json") as read_file:
+    with open(output_dir + os.sep + "metrics.json") as read_file:
         lines = read_file.readlines()
 
     checkpoint_list = glob.glob(os.path.join(output_dir, "*.pth"))
